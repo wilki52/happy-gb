@@ -1,2 +1,2 @@
-# happy-gb
+# happygb
 My gameboy emulator
