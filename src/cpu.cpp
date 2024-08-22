@@ -23,7 +23,7 @@ Cpu::Cpu(Memory& ram): ram(&ram){
     reg16[0x2] = hl;
 
     uint8_t sp[2] = {s, p};
-    reg16[0x3] = sp
+    reg16[0x3] = sp;
     
 }
 
@@ -39,11 +39,17 @@ uint8_t Cpu::fetch(){
 //read from memory, M_CYCLE+=1
 uint8_t Cpu::read(){
     uint8_t int_8 = ram->memory[pc];
-    
     pc= pc+1;
     m_cycle+=1; //FETCH IS +1 m_cycle
     return int_8;
 }
+uint8_t Cpu::read(uint16_t address){
+    uint8_t val = ram->memory[address];
+    m_cycle+=1; //FETCH IS +1 m_cycle
+    return val;
+}
+
+
 
 //write to memory
 uint8_t Cpu::write(uint16_t address, uint8_t data){
@@ -102,23 +108,72 @@ void Cpu::decode_block0(uint8_t instruction){
             }
             
             break;
-        case 1:
+        case 1: {
             std::cout << "LD r16, imm16" << std::endl;
-            //number of cycles
-            //immediate goes to r16, depending on bits 1-2
-            //destiny goes to //two following bytes of what?
-
-            //LD R16
+            uint8_t dest = instruction >> 4 & 0x3;
+            uint8_t low = read();
+            reg16[dest][1] = low; //c
+            
+            uint8_t hi = read();
+            reg16[dest][0] = hi; //b
+            
+            //no flag
             break;
-        case 2:
+        }
+        case 2: {
+        //use hl for indiredct access i think
             std::cout << "LD [R16mem], A" << std::endl;
+            //load A into byte at ram[r16mem].
+            uint8_t address = instruction >> 4 & 0x3;
+            switch (address){
+                case 0:
+                    write(*reg16[address], a); //bc
+                    break;
+                case 1:
+                    write(*reg16[address], a); //de
+                    break;
+                case 2: 
+                    write(*reg16[3]+1, a); //hl+
+                    break;
+                case 3:
+                    write(*reg16[3]-1, a); //hl-
+                    break;
+
+            }
             break;
-        case 10:
+        }
+        case 10:{
             std::cout << "LD A, [R16mem]" << std::endl;
+            //get value in address, load in A. 
+            uint8_t address = instruction >> 4 & 0x3;
+
+            switch (address){
+                case 0:
+                    a = read(*reg16[address]); //bc
+                    break;
+                case 1:
+                    a = read(*reg16[address]); //de
+                    break;
+                case 2: 
+                    a = read(*reg16[3]+1); //hl+
+                    break;
+                case 3:
+                    a = read(*reg16[3]-1); //hl-
+                    break;
+            
             break;
-        case 8:
+            }
+        case 8:{
             std::cout << "LD [imm16], sp" << std::endl;
+            //load value in sp (hi lo) to (imm16), aka the address that valimm16 points to
+            uint8_t instruction_low = read();
+            uint8_t instruction_hi = read();
+            write(instruction_low, p);
+            write(instruction_hi, s);
+            //write(pc, s), pc++
             break;
+        }
+            
 
         case 3:
             std::cout << "inc r16" << std::endl;
