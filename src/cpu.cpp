@@ -1,18 +1,62 @@
 #include "cpu.h"
 #include <iostream>
 Cpu::Cpu(){
+    
+}
+Cpu::Cpu(Memory& ram): ram(&ram){
+    //init map
+    reg8[0x0] = &b;
+    reg8[0x1] = &c;
+    reg8[0x2] = &d;
+    reg8[0x3] = &e;
+    reg8[0x4] = &h;
+    reg8[0x5] = &l;
+    //reg8[0x8] = &; supposed to be [hl]
+    reg8[0x7] = &a;
 
+    //init reg16
+    uint8_t bc[2] = {b, c};
+    reg16[0x0] = bc;
+    uint8_t de[2] = {d, e};
+    reg16[0x1] = de;
+    uint8_t hl[2] = {h, l};
+    reg16[0x2] = hl;
+
+    uint8_t sp[2] = {s, p};
+    reg16[0x3] = sp
+    
 }
 
 //return 8bit instruction
-uint8_t Cpu::fetch(Memory ram){
-    uint8_t instruction = ram.memory[pc];
+uint8_t Cpu::fetch(){
+    uint8_t instruction = ram->memory[pc];
+    
     pc= pc+1;
+    m_cycle+=1; //FETCH IS +1 m_cycle
     return instruction;
 }
+
+//read from memory, M_CYCLE+=1
+uint8_t Cpu::read(){
+    uint8_t int_8 = ram->memory[pc];
+    
+    pc= pc+1;
+    m_cycle+=1; //FETCH IS +1 m_cycle
+    return int_8;
+}
+
+//write to memory
+uint8_t Cpu::write(uint16_t address, uint8_t data){
+    ram->memory[address] = data;
+
+    pc= pc+1;
+    m_cycle+=1; //writing IS +1 m_cycle
+}
+
+
 uint8_t Cpu::decode(uint8_t instruction){
     std::cout << "instruction: "  << unsigned(instruction) << std::endl;
-    uint8_t opcode = (instruction >> 6) & 0x3;
+    uint8_t opcode = (instruction >> 6) & 0x3; //2 bits
     std::cout << unsigned(opcode) << std::endl; //this works.
     //parse(opcode);
     switch (opcode){
@@ -37,10 +81,8 @@ void Cpu::decode_block0(uint8_t instruction){
 
     switch (opcode){
         case 0:
-            //uint8_t bit5 = 
 
-
-            if ((instruction >> 5 & 0x1)==1){
+            if ((instruction >> 5 & 0x1)==1){ //if bit5==1
                 std::cout << "jr cond, imm8" << std::endl;
 
             }
@@ -62,6 +104,11 @@ void Cpu::decode_block0(uint8_t instruction){
             break;
         case 1:
             std::cout << "LD r16, imm16" << std::endl;
+            //number of cycles
+            //immediate goes to r16, depending on bits 1-2
+            //destiny goes to //two following bytes of what?
+
+            //LD R16
             break;
         case 2:
             std::cout << "LD [R16mem], A" << std::endl;
@@ -131,39 +178,73 @@ void Cpu::decode_block1(uint8_t instruction){
     
     if (identifier == 0b110110){
         std::cout << "halt" << std::endl;
+        //IME flag, for interrupts
     }
-    else{
+
+    else{ //ld: 0b01XXXYYY //one cycle from fetching...fetching instruction...i see.
         std::cout << "ld r8, r8" << std::endl;
+        //store value of reg8 yyy into reg8 xxx;
+        uint8_t dest = (instruction >> 3) & 0x7;
+        uint8_t source = (instruction) & 0x7;
+
+        *reg8[dest] = *reg8[source];
     }
 }
 
 
+
+void Cpu::set_flags(uint8_t z, uint8_t n, uint8_t h, uint8_t c){
+
+}
+
+//8 bit arithmetic
 void Cpu::decode_block2(uint8_t instruction){
     uint8_t bits_5_4_3 = instruction >> 3 & 0x7;
+    uint8_t operand = instruction & 0x7;
     switch (bits_5_4_3){
         case 0:
             std::cout << "ADD a, r8" << std::endl;
+            //write r8 into a.
+            a = a+ *reg8[operand];
+            //set if result is 0, n=0, h set overflow from bit3, c if overfow from bit7
             break;
         case 1:
             std::cout << "ADC a, r8" << std::endl;
+            a = a+ *reg8[operand] + (f & 0x10); //+ carry flag
+            //TODO: if 0, 0, if overflow from bit3, if overflow from bit7;
             break;
         case 2:
             std::cout << "SUB a, r8" << std::endl;
+            a = a - *reg8[operand];
+            //TODO: set flag 0 if zero, 1, set if borrow from bit4, if borrow (set if r8>A);
             break;
         case 3:
             std::cout << "SBC a, r8" << std::endl;
+            a = a - *reg8[operand] - (f & 0x10);
+            //TODO: set flag 0 if zero, 1, if borrow, if borrow;
             break;
+
         case 4:
             std::cout << "AND a, r8" << std::endl;
+            a = a & *reg8[operand];
+            //TODO: set flag 0 if zero, 0, 1, 0;
             break;
         case 5:
             std::cout << "XOR a, r8" << std::endl;
+            a = a ^ *reg8[operand];
+             //TODO: set flag 0 if zero, 0, 0, 0;
+
             break;
         case 6:
             std::cout << "OR a, r8" << std::endl;
+            a = a | *reg8[operand];
+            //TODO: set flag Z IF 0, 0 0 0
             break;
         case 7:
             std::cout << "CP a, r8" << std::endl;
+            //compare
+            uint8_t temp = a - *reg8[operand];
+            //TODO: set flag 0, 1, set if borrow, set if borrow
             break;
         
 
