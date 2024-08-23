@@ -13,17 +13,14 @@ int main(){
     //check a> 255-b
     std::cout << ((a+b)>255) << std::endl;
     */
-    uint8_t d = 253;
-    uint8_t e= 255;
-    uint8_t f = d-e;
-    //check a> 255-b
-    std::cout << ((d-e)<0) << std::endl;
+   
+    // uint8_t d = 253;
+    // uint8_t e= 255;
+    // uint8_t f = d-e;
+    // //check a> 255-b
+    // std::cout << ((d-e)<0) << std::endl;
     
-    //set i fborrow from bit 4 for halfcarry
-
-    //set if borrow if r8> A, where 
-    //A-r8. So set c if underflow basically.
-
+    
 
 
 

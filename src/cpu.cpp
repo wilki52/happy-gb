@@ -90,6 +90,53 @@ void Cpu::decode_block0(uint8_t instruction){
 
             if ((instruction >> 5 & 0x1)==1){ //if bit5==1
                 std::cout << "jr cond, imm8" << std::endl;
+                //relative jump to address n16 if cond is met.
+         //COND : nz (not zero), z (zero), nc (not carry), c (carry)
+                uint8_t condition = instruction >> 3 & 0x3;
+
+                //READ IMM8
+                uint8_t imm8 = read();
+                switch (condition){
+                    case 0:{
+                        //if z==0
+                        if ((f& 0x80)==0){
+                            //jump
+                            pc+=imm8;
+                            m_cycle+=1;
+                        }
+                    }
+                        break;
+                    case 1:{
+                        //if z==1
+                        if ((f& 0x80)==1){
+                            //jump
+                            pc+=imm8;
+                            m_cycle+=1;
+
+                        }
+                    }
+                        break;
+                    case 2:{
+                        //if c==0
+                        if ((f& 0x10)==0){
+                            //jump
+                            pc+=imm8;
+                            m_cycle+=1;
+
+                        }
+
+                    }
+                        break;
+                    case 3:{
+                        if ((f& 0x10)==1){
+                            //jump
+                            pc+=imm8;
+                            m_cycle+=1;
+
+                        }
+                    }
+                        break;
+                }
 
             }
             else{
@@ -97,12 +144,15 @@ void Cpu::decode_block0(uint8_t instruction){
                 switch (bits43){
                     case 3:
                         std::cout << "jr imm8" << std::endl;
+                        pc+= read();
                         break;
                     case 2:
                         std::cout << "stop" << std::endl;
+                        //TODO: enter low power mode. use to swtich between double/normal speed CPU in gbc.
                         break;
                     case 0:
                         std::cout << "NOP" << std::endl;
+                        //no operation, just use to skip pc. already done with fetch.
                         break;
                 }
             }
@@ -223,33 +273,54 @@ void Cpu::decode_block0(uint8_t instruction){
 
             //now check for overflow
             uint16_t new_hl = (h <<8 | l) + add;
+
+            //check for overflow carry bit
+            if (((h <<8 | l) + add)>255){
+                set_c(1);
+            }
+            else{
+                set_c(0);
+            }
+
+            //set hf if overflow after bit11
+            if ((((h <<8 | l)& 0xFFF + add&0xFFF)&0x1000) == 0x1000){
+                set_h(1);
+            }
+            else{
+                set_c(0);
+            }
+            set_n(0);
+
             h = new_hl >> 4 & 0xF;
             l = new_hl & 0xF;
 
-            //how to carry.
-
-            //TODO:FLAG: N=0, H: SET IF OVERFLOW FROM BIT11, C: SET IF OVERFLOW FROM BIT15
-            set_n(0);
-            //
-            
-
-            //how to check for overflow? compare operands? 
-            
             m_cycle+=1;
-
             break;
         }
         
         
         case 4:{
-
-
-        
             std::cout << "inc r8" << std::endl;
             uint8_t operand = instruction >> 3 & 0x7; //3 bits
+
+            //overflow from bit3
+            if ((((*reg8[operand] & 0xF)+ (0x1)) & 0x10)== 0x10){
+                set_h(1);
+            }
+            else{
+                set_h(0);
+            }
+
             *reg8[operand] = *reg8[operand]+1;
-            
-            //TODO: FLAG: z=0 if 0, n=0, h=set if overflow from bit3.
+
+            if (*reg8[operand]==0){
+                set_z(1);
+            }           
+            else{
+                set_z(0);
+            } 
+            set_n(0);
+                       
             //no extra m_cycles needed.
             break;
         }
@@ -257,13 +328,29 @@ void Cpu::decode_block0(uint8_t instruction){
         case 5:{
             std::cout << "dec r8" << std::endl;
             uint8_t operand = instruction >> 3 & 0x7; //3 bits
+
+            //set h if borrow from bit4 //aka if subtractor > subtract from.
+            if (0x1 > *reg8[operand]&0xF){
+                set_h(1);
+            }
+            else{ 
+                set_h(0);
+            }
+
+
             *reg8[operand] = *reg8[operand]-1;
-            //TODO: z: set if 0, n=1, h: set if borrow from bit 4
+
+            //BORROW FROM BIT4
+            
+
+            if (*reg8[operand]==0) set_z(1);
+            else set_z(0);
+            set_n(1);
+            
+
             break;
         }
         case 6:{
-
-        
             std::cout << "ld r8, imm8" << std::endl;
             //read immediate.
             uint8_t operand = instruction >> 3 & 0x7; //3 bits
