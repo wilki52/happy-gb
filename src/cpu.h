@@ -26,6 +26,15 @@ class Cpu{
 
         void set_flags(uint8_t z=0, uint8_t n=0, uint8_t h=0, uint8_t c=0);
 
+        void set_half_if_overflow_8(uint8_t op1, uint8_t op2, uint8_t carry=0); //3 bit overflow
+        void set_half_if_overflow_16(uint16_t op1, uint16_t op2, uint8_t carry=0);  //11 bit overflow
+
+        void set_carry_if_overflow_8(uint8_t op1, uint8_t op2, uint8_t carry=0); //overflow bit7
+        void set_carry_if_overflow_16(uint16_t op1, uint16_t op2, uint8_t carry=0); //oerflow bit15
+
+        void set_half_if_borrow(uint8_t minuend, uint8_t subtrahend, uint8_t carry=0); //min - sub
+        void set_carry_if_borrow(uint8_t minuend, uint8_t subtrahend, uint8_t carry=0);
+
         void set_z(uint8_t result);
         void set_n(uint8_t n);
         void set_h(uint8_t h);
