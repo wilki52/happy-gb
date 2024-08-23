@@ -24,11 +24,12 @@ class Cpu{
         int m_cycle;
         int t_state; 
 
-            //garbage...don't use.. delete soon
-        void set_flags(uint8_t value, bool add = false, bool sub = false, uint8_t shift = 0, uint8_t z=0, uint8_t n = 0, uint8_t h=0, uint8_t c=0);
-        void set_flags(uint16_t value, bool add = false, bool sub = false, uint8_t shift = 0, uint8_t z=0, uint8_t n = 0, uint8_t h=0, uint8_t c=0);
-
         void set_flags(uint8_t z=0, uint8_t n=0, uint8_t h=0, uint8_t c=0);
+
+        void set_z(uint8_t result);
+        void set_n(uint8_t n);
+        void set_h(uint8_t h);
+        void set_c(uint8_t c);
 
         void decode_block0(uint8_t instruction);
         void decode_block1(uint8_t instruction);

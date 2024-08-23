@@ -160,9 +160,10 @@ void Cpu::decode_block0(uint8_t instruction){
                 case 3:
                     a = read(*reg16[3]-1); //hl-
                     break;
-            
-            break;
             }
+            break;
+            
+        }
         case 8:{
             std::cout << "LD [imm16], sp" << std::endl;
             //load value in sp (hi lo) to (imm16), aka the address that valimm16 points to
@@ -175,56 +176,199 @@ void Cpu::decode_block0(uint8_t instruction){
         }
             
 
-        case 3:
+        case 3:{
             std::cout << "inc r16" << std::endl;
+            //read reg16, add one.
+            uint8_t operand = instruction >> 4 & 0x3;
+            uint16_t val = reg16[operand][0] <<4|reg16[operand][1];
+            val = val+1;
+            reg16[operand][0] = val>>4 & 0x3;
+            reg16[operand][1] = val & 0x3;
+
+            m_cycle+=1; //16 bit increments need 1 more cycle.
             break;
-        case 11:
+
+        }
+            
+        case 11:{
+            
             std::cout << "dec r16" << std::endl;
+            uint8_t operand = instruction >> 4 & 0x3;
+            uint16_t val = reg16[operand][0] <<4|reg16[operand][1];
+            val = val-1;
+            reg16[operand][0] = val>>4 & 0x3; 
+            reg16[operand][1] = val & 0x3;
+            //
+            m_cycle+=1; //16 bit increments need 1 more cycle.
+
             break;
-        case 9:
+
+        }
+        case 9:{
+
+        
             std::cout << "add hl, r16" << std::endl;
+            uint8_t operand = instruction >> 4 & 0x3;
+            //add value of r16 into address of HL?
+            //fetched already.
+            //read hi lo of reg16, into address of 
+            uint16_t add = (reg16[operand][0]<<8 | reg16[operand][1]);
+            //get 11 bits of hl and r16. check for overflow
+            if ((add & 0xFFF + (h<<8 | l)&0xFFF) & 0x1000){
+                set_h(1);
+            }
+            else{
+                set_h(0);
+            }
+
+            //now check for overflow
+            uint16_t new_hl = (h <<8 | l) + add;
+            h = new_hl >> 4 & 0xF;
+            l = new_hl & 0xF;
+
+            //how to carry.
+
+            //TODO:FLAG: N=0, H: SET IF OVERFLOW FROM BIT11, C: SET IF OVERFLOW FROM BIT15
+            set_n(0);
+            //
+            
+
+            //how to check for overflow? compare operands? 
+            
+            m_cycle+=1;
+
             break;
+        }
         
-        case 4:
+        
+        case 4:{
+
+
+        
             std::cout << "inc r8" << std::endl;
+            uint8_t operand = instruction >> 3 & 0x7; //3 bits
+            *reg8[operand] = *reg8[operand]+1;
+            
+            //TODO: FLAG: z=0 if 0, n=0, h=set if overflow from bit3.
+            //no extra m_cycles needed.
             break;
-        case 5:
-            std::cout << "dec r8" << std::endl;
-            break;
+        }
         
-        case 6:
-            std::cout << "ld r8, imm8" << std::endl;
+        case 5:{
+            std::cout << "dec r8" << std::endl;
+            uint8_t operand = instruction >> 3 & 0x7; //3 bits
+            *reg8[operand] = *reg8[operand]-1;
+            //TODO: z: set if 0, n=1, h: set if borrow from bit 4
             break;
-        case 7:
+        }
+        case 6:{
+
+        
+            std::cout << "ld r8, imm8" << std::endl;
+            //read immediate.
+            uint8_t operand = instruction >> 3 & 0x7; //3 bits
+            uint8_t instruction = read();
+
+            *reg8[operand] = instruction;
+            //load this into r8
+            break;
+        }
+        
+        case 7:{
             uint8_t mid = (instruction >>3) & 0x7;
             switch (mid){
-                case 0:
+                case 0:{
                     std::cout << "rlca" << std::endl;
+                    //rotate to left. msb is added to carry.
+                    //flag set z=0, n=0, h=0, c: set according to result.
+                    uint8_t carry = (a>> 7) & 0x1; //flag
+                    a = a << 1 | carry&0x1;
+
+                    set_z(0);
+                    set_n(0);
+                    set_h(0);
+                    set_c(carry);
+                    
+                
                     break;
-                case 1:
+
+                }
+                    
+                case 1:{
                     std::cout << "rrca" << std::endl;
+
+                    uint8_t carry = (a) & 0x1; //flag
+                    a = carry<<7 & 0xFF |a >> 1;
+                    set_z(0);
+                    set_n(0);
+                    set_h(0);
+                    set_c(carry);
+                    
+                
                     break;
-                case 2:
+                }
+                    
+                    
+                case 2:{
                     std::cout << "rla" << std::endl;
+
+                    uint8_t new_carry = (a>> 7) & 0x1; //flag
+                    a = a << 1 | (f >>4) & 0x1;
+                    set_z(0);
+                    set_n(0);
+                    set_h(0);
+                    set_c(new_carry);
+                    
                     break;
-                case 3:
+                }
+                    
+                case 3:{
                     std::cout << "rra" << std::endl;
+                    uint8_t new_carry = (a) & 0x1; //flag
+                    a = (f <<3 & 0x80) |a >> 1;
+                    set_z(0);
+                    set_n(0);
+                    set_h(0);
+                    set_c(new_carry);
                     break;
-                case 4:
+                }
+                    
+                case 4:{
                     std::cout << "daa" << std::endl;
+                    //TODO: DAA WTF
+
                     break;
-                case 5:
+                }
+                    
+                case 5:{
+
+                }
                     std::cout << "cpl" << std::endl;
+                    //complement accuulator
+                    a = ~a;
+                    set_n(1);
+                    set_h(1);
                     break;
-                case 6:
-                    std::cout << "scf" << std::endl;
+                case 6:{
+
+                }
+                    std::cout << "scf: set carry flag" << std::endl;
+                    //set carry flag
+                    set_c(1);
                     break;
-                case 7:
+                case 7:{
                     std::cout << "ccf" << std::endl;
+                    f = f ^ 0x80; //toggles c flag.
+                    set_n(0);
+                    set_h(0);
                     break;
+
+                }
+                    
                 
             }
             break;
+        }
     }
 }
 
@@ -245,7 +389,44 @@ void Cpu::decode_block1(uint8_t instruction){
         *reg8[dest] = *reg8[source];
     }
 }
+void Cpu::set_z(uint8_t z){
+    if (z==1){ //set z to 1
+        //f = f ^ 0x80; //this toggles z. we want to set it
+        f = f | 0x80; //this sets z to 1
+    }
+    else{
+        f = f & 0x7F; //set z to 0 no matter what
+    }
+}
+void Cpu::set_n(uint8_t n){
+    if (n==1){ //set z to 1
+        //f = f ^ 0x80; //this toggles z. we want to set it
+        f = f | 0x40; //this sets z to 1
+    }
+    else{
+        f = f & 0xBF; //set z to 0 no matter what
+    }
 
+}
+
+void Cpu::set_h(uint8_t h){
+    if (h==1){ //set z to 1
+        //f = f ^ 0x80; //this toggles z. we want to set it
+        f = f | 0x20; //this sets z to 1
+    }
+    else{
+        f = f & 0xDF; //set z to 0 no matter what
+    }
+}
+void Cpu::set_c(uint8_t c){
+    if (c==1){ //set z to 1
+        //f = f ^ 0x80; //this toggles z. we want to set it
+        f = f | 0x10; //this sets z to 1
+    }
+    else{
+        f = f & 0xEF; //set z to 0 no matter what
+    }
+}
 
 
 void Cpu::set_flags(uint8_t z, uint8_t n, uint8_t h, uint8_t c){
@@ -261,7 +442,7 @@ void Cpu::decode_block2(uint8_t instruction){
             std::cout << "ADD a, r8" << std::endl;
             //write r8 into a.
             a = a+ *reg8[operand];
-            //set if result is 0, n=0, h set overflow from bit3, c if overfow from bit7
+            //TODO: set if result is 0, n=0, h set overflow from bit3, c if overfow from bit7
             break;
         case 1:
             std::cout << "ADC a, r8" << std::endl;
