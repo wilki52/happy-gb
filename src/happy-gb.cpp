@@ -6,7 +6,7 @@ Happy::Happy(): ram(), cpu(ram){ //init ram, then init cpu constructor
     //register setup
     //decode(0b01111111);
 
-    cycle();
+    //cycle();
 
 }
 

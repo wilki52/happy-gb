@@ -11,7 +11,19 @@ class Cpu{
         uint8_t b,c;
         uint8_t d,e;
         uint8_t h,l;
-        uint8_t s,p; //usually 16 bits, but i put into hi/lo to help with maps. trust.
+        //uint8_t s,p; //usually 16 bits, but i put into hi/lo to help with maps. trust.
+
+        //
+        typedef union {
+            uint16_t full;
+            struct {
+                uint8_t p;
+                uint8_t s;
+
+            };
+        } stack_pointer;
+        stack_pointer sp;
+
         uint16_t pc; //16 bits to point to 32kb memory.
         //flags
         //uint8_t zf; //zero flag
@@ -51,6 +63,9 @@ class Cpu{
 
         std::map<uint8_t, uint8_t*> reg8;
         std::map<uint8_t, uint8_t*> reg16;
+        
+
+        std::map<uint8_t, uint8_t*> r16mem; //use so we dont need absurd switch statement
 
         //COND : nz (not zero), z (zero), nc (not carry), c (carry)
     public:

@@ -1,18 +1,20 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 #include <stdint.h>
+#include <vector>
 
 class Memory{
     private:
         //RAM
         friend class Cpu;
-        uint16_t memory[65535]; //up to FFFF
-        
-
-
+        uint8_t memory[65535]; //up to FFFF
+       //stack is at the top of memory, and decrements down. REMEMBER THIS!!
         //GRAPHICAL RAM
         //uint16_t video_memory[16000];
-        uint16_t pixels [160*144]; //resolution //pixel might need to be 16bit to support 15bit rgb <-idk how this works lol
+        uint8_t pixels [160*144]; //resolution //pixel might need to be 16bit to support 15bit rgb <-idk how this works lol
+
+        void pop_stack(uint16_t pointer);
+        void push_stack(uint16_t pointer);
     public:
         
         Memory();

@@ -4,7 +4,7 @@
 int main(){
     std::cout<< "hello world" << std::endl;
 
-    //Happy happygb;
+    Happy happygb;
 
     /*
     uint8_t a = 255;

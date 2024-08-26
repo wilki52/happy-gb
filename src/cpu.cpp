@@ -4,6 +4,10 @@ Cpu::Cpu(){
     
 }
 Cpu::Cpu(Memory& ram): ram(&ram){
+    //init sp
+    
+    sp.full = 0xFFFE; //starts at top of memory
+
     //init map
     reg8[0x0] = &b;
     reg8[0x1] = &c;
@@ -22,8 +26,8 @@ Cpu::Cpu(Memory& ram): ram(&ram){
     uint8_t hl[2] = {h, l};
     reg16[0x2] = hl;
 
-    uint8_t sp[2] = {s, p};
-    reg16[0x3] = sp;
+    uint8_t spp[2] = {sp.s, sp.p};
+    reg16[0x3] = spp;
     
 }
 
@@ -266,8 +270,8 @@ void Cpu::decode_block0(uint8_t instruction){
             //load value in sp (hi lo) to (imm16), aka the address that valimm16 points to
             uint8_t instruction_low = read();
             uint8_t instruction_hi = read();
-            write(instruction_low, p);
-            write(instruction_hi, s);
+            write(instruction_low, sp.p);
+            write(instruction_hi, sp.s);
             //write(pc, s), pc++
             break;
         }
@@ -661,7 +665,6 @@ void Cpu::decode_block3(uint8_t instruction){
                     set_n(0);
                     set_h(0);
                     set_c(0);
-
                     break;
                 }
                 case 0xF6:{
@@ -673,7 +676,6 @@ void Cpu::decode_block3(uint8_t instruction){
                     set_n(0);
                     set_h(0);
                     set_c(0);
-
                     break;
                 }
                 case 0xFE:{
@@ -692,42 +694,181 @@ void Cpu::decode_block3(uint8_t instruction){
         
         case 0:
             switch (instruction){
-                case 0xE0:
+                case 0xE0:{
                     std::cout << "LDH [imm8], A" << std::endl;
-                    break;
-                case 0xF0:
-                    std::cout << "LDH A, [imm8]" << std::endl;
-                    break;
-                case 0xE8:
-                    std::cout << "ADD sp, imm8" << std::endl;
-                    break;
-                case 0xF8:
-                    std::cout << "ld hl, sp + imm8" << std::endl;
-                    break;
-                default:
-                    std::cout << "RET COND" << std::endl;
+                    //load val of A into ldh
+                    uint8_t imm8 = read();
+                    write((0xFF00 | imm8), a);
+                    //no flag
                     break;
 
-                
+                }
+                    
+                case 0xF0:{
+                    std::cout << "LDH A, [imm8]" << std::endl;
+                    //read imm8
+                    uint8_t imm8 = read();
+                    uint8_t val = read(0xFF00|imm8);
+                    a = val;
+                    break;
+                }
+                case 0xE8:{
+                    //TODO: SIGNED IMM8
+                    std::cout << "ADD sp, imm8" << std::endl;
+                    //add imm8 to sp.
+                    
+                    //sp is split into 2, so this is going to be a pain in the ass.
+                    uint8_t imm8 = read();
+                    set_half_if_overflow_8(sp.p, imm8);
+                    set_carry_if_overflow_8(sp.p, imm8); //weird, since sp is 16 bits.
+
+                    sp.full = sp.full + imm8;
+
+                    set_z(0);
+                    set_n(0);
+
+                    m_cycle+=2; //4th cycle. its because sp is 2 bytes.
+                    
+                    break;
+
+                }
+                    
+                case 0xF8:{
+                    //TODO: SIGNED IMM8
+                    std::cout << "ld hl, sp + imm8" << std::endl;
+                    //
+                    uint8_t imm8 = read();
+
+                    set_half_if_overflow_8(sp.p, imm8);
+                    set_carry_if_overflow_8(sp.p, imm8); //might need to switch
+
+                    sp.full = sp.full + imm8;
+
+                    set_z(0);
+                    set_n(0);
+
+
+                    h = sp.s;
+                    l = sp.p;
+
+
+                    //add e8 to SP, store result in hl. How is this lesss clock cycles lol
+
+                    break;
+
+                }
+                    
+                default:
+                    std::cout << "RET COND" << std::endl;
+                    //return from subroutine. aka stackpointer bruv.
+                    uint8_t condition = instruction >> 3 & 0x3;
+
+                    switch (condition){
+                    case 0:{
+                        //if z==0
+                        if ((f& 0x80)==0){
+                            //jump
+                            pc = (ram->memory[sp.full+1]<<8) | ram->memory[sp.full]; //hi+lo
+                            sp.full+=2; //pop up
+                            m_cycle+=3; //2 bytes + internal set pc
+                        }
+                    }
+                        break;
+                    case 1:{
+                        //if z==1
+                        if ((f& 0x80)==1){
+                            //jump
+                            pc = (ram->memory[sp.full+1]<<8) | ram->memory[sp.full]; //hi+lo
+                            sp.full+=2; //pop up
+                            m_cycle+=3; //2 bytes + internal set pc
+
+                        }
+                    }
+                        break;
+                    case 2:{
+                        //if c==0
+                        if ((f& 0x10)==0){
+                            //jump
+                            pc = (ram->memory[sp.full+1]<<8) | ram->memory[sp.full]; //hi+lo
+                            sp.full+=2; //pop up
+                            m_cycle+=3; //2 bytes + internal set pc
+
+                        }
+
+                    }
+                        break;
+                    case 3:{
+                        if ((f& 0x10)==1){
+                            //jump
+                            pc = (ram->memory[sp.full+1]<<8) | ram->memory[sp.full]; //hi+lo
+                            sp.full+=2; //pop up
+                            m_cycle+=3; //2 bytes + internal set pc
+                        }
+                    }
+                        m_cycle+=1; //internal branch decision
+                        break;
+                    }
+                    break;    
             }
             break;
         case 1:
             switch (instruction){
                 case 0xC9:
                     std::cout << "ret" << std::endl;
+                    pc = (ram->memory[sp.full+1]<<8) | ram->memory[sp.full]; //hi+lo
+                    sp.full+=2; //pop up
+                    m_cycle+=3; //2 bytes + internal set pc
                     break;
                 case 0xD9:
                     std::cout << "reti" << std::endl;
+                    //TODO: IME related stuff. basically does EI then RET. wait for interrupts.
                     break;
                 case 0xE9:
                     std::cout << "jp hl" << std::endl;
+                    pc = (h << 8)| l;
                     break;
                 case 0xFA:
                     std::cout << "ld sp, hl" << std::endl;
+                    sp.s = h;
+                    sp.p = l;
+                    m_cycle+=1; //internal: reg16 low, hi.
                     break;
-                default:
+                default:{
                     std::cout << "pop r16stk" << std::endl;
+                    uint8_t dest =  instruction >> 4 & 0x3;
+                    
+                    //pop af
+                    if (dest==0x3){
+                        //af
+                        f = ram->memory[sp.full];
+                        sp.full +=1;
+                        a = ram->memory[sp.full];
+                        sp.full +=1;
+
+                        m_cycle+=2;
+
+                        //flags
+                        set_z(f>>7 & 0x1);
+                        set_n(f>>6 & 0x1);
+                        set_h(f>>5 & 0x1);
+                        set_c(f>>4 & 0x1);
+                        break;
+                    }
+                    //else: pop r16
+
+                    //get 16 bit address, put into r16.
+                    //pop 
+                    //
+                    reg16[dest][1] = ram->memory[sp.full]; //LD reg_low, sp
+                    sp.full+=1;//decrement
+                    reg16[dest][0] = ram->memory[sp.full]; //LD reg_hi, sp
+                    sp.full+=1;//decrement
+
+                    m_cycle+=2;
                     break;
+
+                }
+                    
                 
             }
             break;
@@ -735,57 +876,253 @@ void Cpu::decode_block3(uint8_t instruction){
             switch (instruction){
                 case 0xE2:
                     std::cout << "ldh [c], a" << std::endl;
+                    //store a into address w/ vallue c
+                    //ld [0xff00+c], a
+                    write(0xFF00+c, a);
                     break;
-                case 0xEA:
+                case 0xEA:{
                     std::cout << "ld [imm16], a" << std::endl;
+                    uint8_t imm_low = read();
+                    uint8_t imm_hi = read();
+                    write(imm_hi<<8+imm_low, a);
                     break;
-                case 0xF2:
-                    std::cout << "ld [imm16], a" << std::endl;
+                    
+
+                }
+                    
+                case 0xF2:{
+                    std::cout << "ldh a, [c]" << std::endl;
+                    //a = read(0xff00+c)
+                    a = read(0xFF00 + c);
                     break;
+                }
+                    
                 case 0xFA:
                     std::cout << "ld a, [imm16]" << std::endl;
+                    uint8_t low = read();
+                    uint8_t hi = read();
+                    a = read((hi << 8)|low);
                     break;
-                default:
+                default:{
                     std::cout << "jp cond, imm16" << std::endl;
+                    //jumpto imm16 on condition flag.
+                    uint8_t condition = instruction >> 3 & 0x3;
+
+                    //READ IMM8
+                    uint8_t low = read();
+                    uint8_t hi = read();
+                    uint16_t jump = (hi << 8) | low;
+                    
+                    switch (condition){
+                        case 0:{
+                            //if z==0
+                            if ((f& 0x80)==0){
+                                //jump
+                                pc =jump;
+                                m_cycle+=1;
+                            }
+                        }
+                            break;
+                        case 1:{
+                            //if z==1
+                            if ((f& 0x80)==1){
+                                //jump
+                                pc =jump;
+                                m_cycle+=1;
+
+                            }
+                        }
+                            break;
+                        case 2:{
+                            //if c==0
+                            if ((f& 0x10)==0){
+                                //jump
+                                pc =jump;
+                                m_cycle+=1;
+
+                            }
+
+                        }
+                            break;
+                        case 3:{
+                            if ((f& 0x10)==1){
+                                //jump
+                                pc =jump;
+                                m_cycle+=1;
+
+                            }
+                        }
+                            break;
+                    }
+
+                    //
+
                     break;
-                
             }
             break;
         case 3:
             switch (instruction){
                 case 0xC3:
                     std::cout << "jp imm16" << std::endl;
+                        uint8_t low = read();
+                        uint8_t hi = read();
+                        uint16_t jump = (hi << 8) | low;
+                        pc = jump;
+                        m_cycle+=1;
+                    
                     break;
                 case 0xCB:
                     std::cout << "PREFIX" << std::endl;
+                    //TODO
                     break;
                 case 0xF3:
                     std::cout << "di" << std::endl;
+                    //clear IME flag
+                    //todo
                     break;
                 case 0xFB:
                     std::cout << "ei" << std::endl;
+                    //enable ime flag
+                    //todo
                     break;
                 
  
                 
             }
             break;
-        case 4:
+        case 4:{
             std::cout << "call cond, imm16" << std::endl;
+            uint8_t condition = instruction >> 3 & 0x3;
+            uint8_t lo = read();
+            uint8_t hi = read();
+
+            switch (condition){
+                        case 0:{
+                            //if z==0
+                            if ((f& 0x80)==0){
+                                //jump
+                                sp.full-=1;
+                                write(sp.full, ((pc>>8) & 0xFF) );
+                                sp.full-=1;
+                                write(sp.full,(pc & 0xFF));
+                                
+                                //jump
+                                pc = (hi <<8)| lo;
+                                m_cycle+=3; //16 bits twice. 
+                            }
+                        }
+                            break;
+                        case 1:{
+                            //if z==1
+                            if ((f& 0x80)==1){
+                                //jump
+                                sp.full-=1;
+                                write(sp.full, ((pc>>8) & 0xFF) );
+                                sp.full-=1;
+                                write(sp.full,(pc & 0xFF));
+                                
+                                //jump
+                                pc = (hi <<8)| lo;
+                                m_cycle+=3; //16 bits twice. 
+
+                            }
+                        }
+                            break;
+                        case 2:{
+                            //if c==0
+                            if ((f& 0x10)==0){
+                                //jump
+                                sp.full-=1;
+                                write(sp.full, ((pc>>8) & 0xFF) );
+                                sp.full-=1;
+                                write(sp.full,(pc & 0xFF));
+                                
+                                //jump
+                                pc = (hi <<8)| lo;
+                                m_cycle+=3; //16 bits twice. 
+
+                            }
+
+                        }
+                            break;
+                        case 3:{
+                            if ((f& 0x10)==1){
+                                //jump
+                                sp.full-=1;
+                                write(sp.full, ((pc>>8) & 0xFF) );
+                                sp.full-=1;
+                                write(sp.full,(pc & 0xFF));
+                      
+                                //jump
+                                pc = (hi <<8)| lo;
+                                m_cycle+=3; //16 bits twice. 
+
+                            }
+                        }
+                            break;
+                    }
+            //todo
             break;
+        }
+            
         case 5:
             switch (instruction){
-                case 0xCD:
+                case 0xCD:{
                     std::cout << "CALL imm16" << std::endl;
+                    uint8_t lo = read();
+                    uint8_t hi = read();
+
+                    //store instruction to return to.
+                    sp.full-=1;
+                    write(sp.full, ((pc>>8) & 0xFF) );
+                    sp.full-=1;
+                    write(sp.full,(pc & 0xFF));
+
+                    //jump
+                    pc = (hi <<8)| lo;
+
+                    m_cycle+=1; //16 bits twice. 
                     break;
+                }
+                    
                 default:
                     std::cout << "push r16stk" << std::endl;
+
+                    uint8_t reg = (instruction >> 4) & 0x3;
+
+                    if (reg==0x3){ //push af
+                        sp.full-=1;
+                        write(sp.full, a);
+                        sp.full-=1;
+                        write(sp.full, f);
+                        m_cycle+=1;
+                        break;
+                    }
+
+                    sp.full-=1;
+                    write(sp.full, reg16[reg][0]); 
+                    sp.full-=1;
+                    write(sp.full, reg16[reg][1]);
+                    m_cycle+=1;
+
                     break;
             }
             break;
-        case 7:
+        case 7:{
             std::cout << "rst tgt3" << std::endl;
+            
+            uint8_t target = (instruction >> 3) & 0x7;
+            //save pc to stack.
+            sp.full -=1;
+            write(sp.full, (pc >>8) & 0xff);
+            sp.full-=1;
+            write(sp.full, pc & 0xff );
+            //pc = target
+            pc = target;
+
             break;    
+        }
+            
         
         
     
