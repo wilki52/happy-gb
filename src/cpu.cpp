@@ -5,7 +5,11 @@ Cpu::Cpu(){
 }
 Cpu::Cpu(Memory& ram): ram(&ram){
     //init sp
-    
+    //sp = {0};
+    bc.full = 0;
+    de.full = 0;
+    hl.full = 0;
+    counter.full = 0;
     sp.full = 0xFFFE; //starts at top of memory
 
     //init map
@@ -19,16 +23,47 @@ Cpu::Cpu(Memory& ram): ram(&ram){
     reg8[0x7] = &a;
 
     //init reg16
-    uint8_t bc[2] = {b, c};
-    reg16[0x0] = bc;
-    uint8_t de[2] = {d, e};
-    reg16[0x1] = de;
-    uint8_t hl[2] = {h, l};
-    reg16[0x2] = hl;
+    uint8_t *bcc[2] = {&b, &c};
+    reg16[0x0] = *bcc;
+    uint8_t *dee[2] = {&d, &e};
+    reg16[0x1] = *dee;
+    uint8_t *hll[2] = {&h, &l};
+    reg16[0x2] = *hll;
 
-    uint8_t spp[2] = {sp.s, sp.p};
-    reg16[0x3] = spp;
-    
+    uint8_t *spp[2] = {&sp.s, &sp.p};
+    reg16[0x3] = *spp;
+    //buy a lock
+    reg16[0x0][0] = 2;
+    reg16[0x0][1] = 3;
+    //sp.s = 0;
+    //sp.p = 0;
+    std::cout << unsigned(b) << std::endl;
+    std::cout << unsigned(c) << std::endl;
+    //uint16 bc.
+    //b = bc >> 8 & 0xFF;
+    //b = new_hi;
+    //bc = new_hi | bc&0xFF;
+    std::cout << "t" << std::endl;
+        
+    reg1[0] = &bc;
+    reg1[1] = &de;
+    reg1[2] = &hl;
+    reg1[3] = &sp;
+    std::cout << "ts" << std::endl;
+    reg1[0]->s = 1;
+    reg1[0]->p = 1;
+    std::cout << "1: " << unsigned(bc.full) << std::endl;
+    bc.s = 2;
+    bc.p = 0;
+    std::cout << "2: " << unsigned(reg1[0]->full) << std::endl;
+
+    //option 1
+    //uint8* no = {$n, $o};
+
+
+    //option 2 : 
+    //union for all. then use map<uint8_t, reg> reg16.
+
 }
 
 void Cpu::set_z(uint8_t z){
@@ -897,12 +932,15 @@ void Cpu::decode_block3(uint8_t instruction){
                     break;
                 }
                     
-                case 0xFA:
+                case 0xFA:{
                     std::cout << "ld a, [imm16]" << std::endl;
                     uint8_t low = read();
                     uint8_t hi = read();
                     a = read((hi << 8)|low);
                     break;
+
+                }
+                    
                 default:{
                     std::cout << "jp cond, imm16" << std::endl;
                     //jumpto imm16 on condition flag.
@@ -962,7 +1000,7 @@ void Cpu::decode_block3(uint8_t instruction){
             break;
         case 3:
             switch (instruction){
-                case 0xC3:
+                case 0xC3:{
                     std::cout << "jp imm16" << std::endl;
                         uint8_t low = read();
                         uint8_t hi = read();
@@ -971,6 +1009,9 @@ void Cpu::decode_block3(uint8_t instruction){
                         m_cycle+=1;
                     
                     break;
+
+                }
+                    
                 case 0xCB:
                     std::cout << "PREFIX" << std::endl;
                     //TODO
@@ -1122,6 +1163,8 @@ void Cpu::decode_block3(uint8_t instruction){
 
             break;    
         }
+
+            }
             
         
         
