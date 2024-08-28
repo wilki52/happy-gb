@@ -16,10 +16,12 @@ typedef union {
 class Cpu{
     public:
         Cpu();
-        Cpu(Memory& ram);
+        Cpu(Memory& ramm);
         uint8_t fetch();
         uint8_t decode(uint8_t instruction);
-        uint8_t load_rom(Memory ram);
+        //uint8_t load_rom(Memory ram);
+
+        int read_rom(const char []);
 
     private:
         uint8_t ime;
@@ -57,8 +59,8 @@ class Cpu{
         //uint8_t hf; //half carry flag (bcd) //used by DAA instruction only
         //uint8_t cf; //carry flag
         //uint8_t a, b, c, d, e, h, l, f;
-
         Memory* ram;
+
         int m_cycle;
         int t_state; 
 

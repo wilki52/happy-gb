@@ -1,5 +1,5 @@
 #include "happy-gb.h"
-
+#include <SDL2/SDL.h>
 
 //INIT REG MAPPING HERE
 Happy::Happy(): ram(), cpu(ram){ //init ram, then init cpu constructor
@@ -12,9 +12,10 @@ Happy::Happy(): ram(), cpu(ram){ //init ram, then init cpu constructor
 
 int Happy::cycle(){
     uint8_t instruction = cpu.fetch();
-    cpu.decode(0b00111000); 
-    0b0101;
-
+    
+   // std::cout<< "instruction: "<< unsigned(instruction) << std::endl;
+    SDL_Delay(10);
+    //cpu.decode(instruction); 
 }
 
 int Happy::decode(uint8_t instruction){
@@ -22,6 +23,6 @@ int Happy::decode(uint8_t instruction){
 }
 //arbitrary decode blocks following pandocs, based on opcode bits 7,6
 
-int Happy::load_rom(unsigned char path[]){
-
+int Happy::load_rom(const char path[]){
+    cpu.read_rom(path);
 }

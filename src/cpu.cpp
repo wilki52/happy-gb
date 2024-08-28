@@ -1,11 +1,14 @@
 #include "cpu.h"
 #include <iostream>
+#include <fstream>
+#include <SDL2/SDL.h>
 Cpu::Cpu(){
     
 }
-Cpu::Cpu(Memory& ram): ram(&ram){
+Cpu::Cpu(Memory& ramm): ram(&ramm){
     //init sp
     //sp = {0};
+    pc = 0;
     bc.full = 0;
     de.full = 0;
     hl.full = 0;
@@ -39,23 +42,40 @@ Cpu::Cpu(Memory& ram): ram(&ram){
     vec[0x6] = 0x30; //11 11 0 111 /F7
     vec[0x7] = 0x38; //11 11 1 111 //FF
 
-    uint8_t yo = 0xFE;
-    int8_t yo2 = yo;
-    std::cout << signed(yo) << std::endl;
-    std::cout << int(yo2) << std::endl;
-  
-    uint8_t &dest = af.high;
-    std::cout << "here: "<< unsigned(af.high) << std::endl;
+}
 
-    dest = dest+1;
-    std::cout << "after : " <<  unsigned(af.high) << std::endl;
-    af.high +=1;
-    std::cout << unsigned(dest) << std::endl;
-    std::cout << unsigned(af.full) << std::endl;
 
-    Register &reg = af;
-    reg.full +=1;
-    std::cout << unsigned(af.full) << std::endl;
+int Cpu::read_rom(const char path[]){
+    std::ifstream reader;
+    reader.open(path, std::ios::binary);
+    if (!reader){
+        std::cout << "cant open ROM" << std::endl;
+        return 0;
+    }
+    //reader.seekg(0, reader.end);
+    //int length = reader.tellg();
+    //reader.seekg(0, reader.beg);
+
+    uint8_t instruction;
+    uint8_t point = 0;
+    while (!reader.eof()){
+       // memory
+
+        while (reader.read((char*)(&instruction), sizeof(instruction))){
+            
+            //std::cout << "address: " << unsigned(point) << " hex: "<< std::hex << (int)(instruction) << " " << std::endl;
+            ram->memory[point] = instruction;
+            //std::cout << "address: " << unsigned(point) << " hex: "<< std::hex << (int)(ram->memory[point]) << " " << std::endl;
+            std::cout << unsigned(ram->memory[0]) << std::endl; //it doesnt get saved! figure out different solution.
+            point+=1;
+            SDL_Delay(1);
+        }
+        
+    }
+    //where to start, where to end?
+
+
+
 }
 
 void Cpu::set_z(uint8_t z){
@@ -109,6 +129,7 @@ void Cpu::set_carry_if_borrow(uint8_t minuend, uint8_t subtrahend, uint8_t carry
 //return 8bit instruction
 uint8_t Cpu::fetch(){
     uint8_t instruction = ram->memory[pc];
+    std::cout << unsigned(ram->memory[0]) << std::endl;
     pc= pc+1;
     m_cycle+=1; //FETCH IS +1 m_cycle
     return instruction;

@@ -4,8 +4,13 @@
 int main(){
     std::cout<< "hello world" << std::endl;
 
-    Happy happygb;
-
+    Happy gb;
+    gb.load_rom("test_roms/cpu_instrs.gb");
+    //gb.load_rom("test_roms/Breakout.ch8");
+    
+    while (true){
+        gb.cycle();
+    }
     /*
     uint8_t a = 255;
     uint8_t b= 255;

@@ -18,11 +18,12 @@ class Happy{
         uint16_t bus; //named bus, but will be renamed appropriately for future pointers
         
         
-        int load_rom(unsigned char path[]);
+        
     public:
         int decode(uint8_t instruction); //instruction is 8bits...
         Happy();
         int cycle();
+        int load_rom(const char path[]);
 };
 
 
