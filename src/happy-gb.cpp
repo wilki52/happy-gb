@@ -10,19 +10,18 @@ Happy::Happy(): ram(), cpu(ram){ //init ram, then init cpu constructor
 
 }
 
-int Happy::cycle(){
+void Happy::cycle(){
     uint8_t instruction = cpu.fetch();
     
-   // std::cout<< "instruction: "<< unsigned(instruction) << std::endl;
+    //std::cout<< instruction;
     SDL_Delay(10);
-    //cpu.decode(instruction); 
+    cpu.decode(instruction); 
+
 }
 
-int Happy::decode(uint8_t instruction){
-   
-}
 //arbitrary decode blocks following pandocs, based on opcode bits 7,6
 
 int Happy::load_rom(const char path[]){
-    cpu.read_rom(path);
+    int pass = cpu.read_rom(path);
+    return pass;
 }

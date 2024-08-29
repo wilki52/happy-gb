@@ -20,9 +20,8 @@ class Happy{
         
         
     public:
-        int decode(uint8_t instruction); //instruction is 8bits...
         Happy();
-        int cycle();
+        void cycle();
         int load_rom(const char path[]);
 };
 

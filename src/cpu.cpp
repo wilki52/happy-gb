@@ -5,7 +5,7 @@
 Cpu::Cpu(){
     
 }
-Cpu::Cpu(Memory& ramm): ram(&ramm){
+Cpu::Cpu(Memory& ram): ram(&ram){
     //init sp
     //sp = {0};
     pc = 0;
@@ -57,7 +57,7 @@ int Cpu::read_rom(const char path[]){
     //reader.seekg(0, reader.beg);
 
     uint8_t instruction;
-    uint8_t point = 0;
+    int point = 0;
     while (!reader.eof()){
        // memory
 
@@ -66,16 +66,16 @@ int Cpu::read_rom(const char path[]){
             //std::cout << "address: " << unsigned(point) << " hex: "<< std::hex << (int)(instruction) << " " << std::endl;
             ram->memory[point] = instruction;
             //std::cout << "address: " << unsigned(point) << " hex: "<< std::hex << (int)(ram->memory[point]) << " " << std::endl;
-            std::cout << unsigned(ram->memory[0]) << std::endl; //it doesnt get saved! figure out different solution.
+            std::cout << "address: " <<unsigned(ram->memory[point]) << std::endl; //it doesnt get saved! figure out different solution.
             point+=1;
-            SDL_Delay(1);
+            //SDL_Delay(1);
         }
         
     }
     //where to start, where to end?
 
 
-
+    return 1;
 }
 
 void Cpu::set_z(uint8_t z){
@@ -108,7 +108,7 @@ void Cpu::set_carry_if_overflow_8(uint8_t op1, uint8_t op2, uint8_t carry){
 
  //11 bit overflow
 void Cpu::set_half_if_overflow_16(uint16_t op1, uint16_t op2, uint8_t carry){
-    uint8_t overflow_bit = (((op1 & 0xFFF)+(op2 & 0xFFF)+ (carry & 0xFFF)) & 0x1FFF);
+    uint16_t overflow_bit = (((op1 & 0xFFF)+(op2 & 0xFFF)+ (carry & 0xFFF)) & 0x1FFF);
     set_h((overflow_bit== 0x1FFF) ? 1 : 0);
 } 
 //check overflow bit15
@@ -129,7 +129,6 @@ void Cpu::set_carry_if_borrow(uint8_t minuend, uint8_t subtrahend, uint8_t carry
 //return 8bit instruction
 uint8_t Cpu::fetch(){
     uint8_t instruction = ram->memory[pc];
-    std::cout << unsigned(ram->memory[0]) << std::endl;
     pc= pc+1;
     m_cycle+=1; //FETCH IS +1 m_cycle
     return instruction;
@@ -151,7 +150,7 @@ uint8_t Cpu::read(uint16_t address){
 
 
 //write to memory
-uint8_t Cpu::write(uint16_t address, uint8_t data){
+void Cpu::write(uint16_t address, uint8_t data){
     ram->memory[address] = data;
 
     pc= pc+1;
@@ -159,7 +158,7 @@ uint8_t Cpu::write(uint16_t address, uint8_t data){
 }
 
 
-uint8_t Cpu::decode(uint8_t instruction){
+void Cpu::decode(uint8_t instruction){
     std::cout << "instruction: "  << unsigned(instruction) << std::endl;
     uint8_t opcode = (instruction >> 6) & 0x3; //2 bits
     std::cout << unsigned(opcode) << std::endl; //this works.
@@ -178,6 +177,7 @@ uint8_t Cpu::decode(uint8_t instruction){
             decode_block3(instruction);
             break;
     }
+
 }
 
 void Cpu::decode_block0(uint8_t instruction){

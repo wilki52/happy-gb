@@ -16,9 +16,9 @@ typedef union {
 class Cpu{
     public:
         Cpu();
-        Cpu(Memory& ramm);
+        Cpu(Memory& ram);
         uint8_t fetch();
-        uint8_t decode(uint8_t instruction);
+        void decode(uint8_t instruction);
         //uint8_t load_rom(Memory ram);
 
         int read_rom(const char []);
@@ -87,7 +87,7 @@ class Cpu{
 
         uint8_t read();
         uint8_t read(uint16_t address);
-        uint8_t write(uint16_t address, uint8_t data);
+        void write(uint16_t address, uint8_t data);
 
         std::map<uint8_t, uint8_t*> reg8;
         std::map<uint8_t, uint8_t*> r16mem; //use so we dont need absurd switch statement

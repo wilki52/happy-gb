@@ -601,7 +601,7 @@ void Cpu::ldh_to_n8(uint8_t &a){ //e0
 void Cpu::ld_to_n16(uint8_t &a){
     uint8_t imm_low = read();
     uint8_t imm_hi = read();
-    write(imm_hi<<8+imm_low, a);
+    write((imm_hi<<8)+imm_low, a);
 
 } //from a
 
