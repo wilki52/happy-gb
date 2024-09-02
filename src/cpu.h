@@ -25,7 +25,7 @@ class Cpu{
 
     private:
         uint8_t ime;
-        uint8_t ime_hold;
+        uint8_t ime_hold; //use to hold ime flag for next instruction
 
         //will not need a variable since it has fixed spot in memory. so...delete it when u implement
         uint8_t IE; //0xFFFF
@@ -84,6 +84,8 @@ class Cpu{
         void decode_block1(uint8_t instruction);
         void decode_block2(uint8_t instruction);
         void decode_block3(uint8_t instruction);
+
+        void cb();
 
         uint8_t read();
         uint8_t read(uint16_t address);

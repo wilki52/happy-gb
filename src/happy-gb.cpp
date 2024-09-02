@@ -16,6 +16,7 @@ void Happy::cycle(){
     //std::cout<< instruction;
     SDL_Delay(10);
     cpu.decode(instruction); 
+    
 
 }
 

@@ -441,7 +441,10 @@ void Cpu::ret(){
 
 }
 
-        void reti(){}
+void Cpu::reti(){
+    ei();
+    ret();
+}
 
 void Cpu::jp_cond(uint8_t cond){
     uint8_t &f = af.low;
@@ -651,5 +654,11 @@ void Cpu::ld_sp_from_hl(){
     m_cycle+=1;
 }
 
-        void di(){}
-        void ei(){}
+void Cpu::di(){
+    ime = 0;
+}
+
+void Cpu::ei(){
+    ime_hold =2 ;
+    //only set after 
+}

@@ -23,6 +23,24 @@ class Memory{
         uint16_t TMA;
         uint16_t TAC;
 
+        uint16_t IF;
+        uint16_t IE;
+
+        //BACKGROUND 
+        uint16_t SCY;
+        uint16_t SCX;
+        //LCD
+        uint16_t LCDC; //
+        uint16_t LY; //
+        uint16_t LYC; //
+        uint16_t STAT; //
+
+
+        //graphics
+        
+
+
+
 
         void pop_stack(uint16_t pointer);
         void push_stack(uint16_t pointer);

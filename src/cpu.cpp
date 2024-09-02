@@ -8,6 +8,8 @@ Cpu::Cpu(){
 Cpu::Cpu(Memory& ram): ram(&ram){
     //init sp
     //sp = {0};
+    ime_hold = 0;
+    ime = 0;
     pc = 0;
     bc.full = 0;
     de.full = 0;
@@ -178,6 +180,14 @@ void Cpu::decode(uint8_t instruction){
             break;
     }
 
+    //ime check
+    
+    if (ime_hold ==1){
+        ime=ime_hold;
+    }
+    if (ime_hold >0){
+        ime_hold-=1;
+    }
 }
 
 void Cpu::decode_block0(uint8_t instruction){
@@ -422,6 +432,7 @@ void Cpu::decode_block3(uint8_t instruction){
                     break;
                 case 0xD9:
                     std::cout << "reti" << std::endl;
+                    reti();
                     //TODO: IME related stuff. basically does EI then RET. wait for interrupts.
                     break;
 
@@ -473,19 +484,18 @@ void Cpu::decode_block3(uint8_t instruction){
                     std::cout << "jp imm16" << std::endl;
                     jp();
                     break;
-                case 0xCB:
+                case 0xCB: //prefix
                     std::cout << "PREFIX" << std::endl;
+
                     //TODO
                     break;
                 case 0xF3:
                     std::cout << "di" << std::endl;
-                    //clear IME flag
-                    //todo
+                    di();
                     break;
                 case 0xFB:
                     std::cout << "ei" << std::endl;
-                    //enable ime flag
-                    //todo
+                    ei();
                     break;
             }
             break;
@@ -516,4 +526,32 @@ void Cpu::decode_block3(uint8_t instruction){
         }
     }
     
+}
+
+void Cpu::cb(){
+    uint8_t bits = fetch();
+
+    uint8_t opcode = (bits >> 3) &0x1F;
+
+    switch (opcode){
+        case 0x0:
+            
+            break;
+        case 0x1:
+            break;
+        case 0x2:
+            break;
+        case 0x3:
+            break;
+        case 0x4:
+            break;
+        case 0x5:
+            break;
+        case 0x6:
+            break;
+        case 0x7:
+            break;
+        
+    }
+
 }
