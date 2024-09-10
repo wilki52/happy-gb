@@ -4,9 +4,11 @@
 
 class Display{
     private:
-
+        SDL_Window* window;
+        SDL_Renderer* renderer;
     public:
         Display();
+        bool open();
 };
 
 

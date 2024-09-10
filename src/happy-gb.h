@@ -6,11 +6,13 @@
 
 #include "memory.h"
 #include "cpu.h"
+#include "display.h"
 class Happy{
     private:
         //CPU specifications
         Memory ram;
         Cpu cpu;
+        Display display;
 
         
         //display here. pointer to a sdl display class probably
@@ -23,6 +25,7 @@ class Happy{
         Happy();
         void cycle();
         int load_rom(const char path[]);
+        void run_program();
 };
 
 

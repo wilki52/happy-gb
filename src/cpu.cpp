@@ -23,7 +23,7 @@ Cpu::Cpu(Memory& ram): ram(&ram){
     reg8[0x2] = &de.high;
     reg8[0x3] = &de.low;
     reg8[0x4] = &hl.high;
-    reg8[0x5] = &hl.low;
+    reg8[0x5] = &hl.low; //holds uint8_t
     //reg8_new[0x6] = &h;//8 bits at [hl]
     reg8[0x6] = &ram.memory[hl.full]; //this doesnt work since it doesnt get updated.
     reg8[0x7] = &af.high;
@@ -44,8 +44,26 @@ Cpu::Cpu(Memory& ram): ram(&ram){
     vec[0x6] = 0x30; //11 11 0 111 /F7
     vec[0x7] = 0x38; //11 11 1 111 //FF
 
+    //test();
+    
+
 }
 
+//to lazy to set up tests, so im just having these. maybe make unit tests for later.
+int Cpu::test(){
+    uint16_t address = (hl.high << 7 | hl.low);
+    ram->memory[address] = 5;
+    uint8_t& test = get_r8_hl();
+    std::cout << "before: " << signed(test) << std::endl;
+    test = 15;
+    std::cout << "after: " << signed(ram->memory[address]) << std::endl;
+    uint8_t& r8 = *reg8[0];
+    std::cout << unsigned(r8) << std::endl;
+    r8 = 23;
+    std::cout << unsigned(*reg8[0]) << std::endl;
+    std::cout << unsigned(r8) << std::endl;
+
+}
 
 int Cpu::read_rom(const char path[]){
     std::ifstream reader;
@@ -68,7 +86,7 @@ int Cpu::read_rom(const char path[]){
             //std::cout << "address: " << unsigned(point) << " hex: "<< std::hex << (int)(instruction) << " " << std::endl;
             ram->memory[point] = instruction;
             //std::cout << "address: " << unsigned(point) << " hex: "<< std::hex << (int)(ram->memory[point]) << " " << std::endl;
-            std::cout << "address: " <<unsigned(ram->memory[point]) << std::endl; //it doesnt get saved! figure out different solution.
+            //std::cout << "address: " <<unsigned(ram->memory[point]) << std::endl; //it doesnt get saved! figure out different solution.
             point+=1;
             //SDL_Delay(1);
         }
@@ -80,6 +98,79 @@ int Cpu::read_rom(const char path[]){
     return 1;
 }
 
+int Cpu::handle_input(SDL_Event event){
+    if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP){
+        bool is_pressed = (event.type==SDL_KEYDOWN);
+        switch (event.key.keysym.scancode){
+            case SDL_SCANCODE_UP:
+                std::cout << "up" << std::endl;
+                break;
+            case SDL_SCANCODE_DOWN:
+                std::cout << "down" << std::endl;
+                break;
+            case SDL_SCANCODE_LEFT:
+                std::cout << "left" << std::endl;
+                break;
+            case SDL_SCANCODE_RIGHT:
+                std::cout << "right" << std::endl;
+                break;
+            case SDL_SCANCODE_X:
+                std::cout << "A" << std::endl;
+                break;
+            case SDL_SCANCODE_Z:
+                std::cout << "B" << std::endl;
+                break;
+            case SDL_SCANCODE_TAB:
+                std::cout << "TAB" << std::endl;
+                break;
+            case SDL_SCANCODE_RETURN:
+                std::cout << "RETURN" << std::endl;
+                break;
+            
+            
+        }
+
+    }
+
+}
+
+
+void Cpu::check_IF(){
+    uint8_t int_flag = ram->memory[ram->IF];
+    if (int_flag>0){
+        //find which bit is raised.
+        uint8_t bit;
+        uint8_t handler = ram->memory[ram->IE];
+        uint16_t address;
+    //conditional due to priority system. i want to be accurate
+    //so i grabbed corresponding bit first.
+        if ((int_flag & 0x1)==0x1){
+            uint8_t bit = 0;
+            address= 0x0040;
+        }
+        else if (((int_flag >>1) & 0x1)==0x1){
+            uint8_t bit = 1;
+            address= 0x0048;
+        }
+        else if (((int_flag >>2)& 0x1)==0x1){
+            uint8_t bit = 2;
+            address= 0x0050;
+        }
+        else if (((int_flag >>3) & 0x1)==0x1){
+            uint8_t bit = 3;
+            address= 0x0058;
+        }
+        else if (((int_flag >>4)& 0x1)==0x1){
+            //bit 0
+            uint8_t bit = 4;
+            address= 0x0060;
+        }
+
+        if (ime==1 && ((handler>>bit) & 0x1) ==1){
+                call(address);
+            }
+    }
+}
 void Cpu::set_z(uint8_t z){
     uint8_t &f = af.low;
     (z==1) ? (f= f| 0x80) : (f = f & 0x7F);
@@ -486,6 +577,7 @@ void Cpu::decode_block3(uint8_t instruction){
                     break;
                 case 0xCB: //prefix
                     std::cout << "PREFIX" << std::endl;
+                    cb();
 
                     //TODO
                     break;
@@ -529,29 +621,53 @@ void Cpu::decode_block3(uint8_t instruction){
 }
 
 void Cpu::cb(){
-    uint8_t bits = fetch();
+    uint8_t instruction = fetch();
 
-    uint8_t opcode = (bits >> 3) &0x1F;
+    uint8_t bits_7_6 = (instruction >> 6) & 0x3;
+    uint8_t opcode = (instruction >> 3) &0x1F;
+    uint8_t key = (instruction & 0x3);
+    uint8_t bit_index = (instruction >> 3) & 0x7;
+    switch (bits_7_6){
+        case 0:{
+            switch (opcode){
+                case 0x0:
+                    rlc(key);
+                    break;
+                case 0x1:
+                    rrc(key);
+                    break;
+                case 0x2:
+                    rl(key);
+                    break;
+                case 0x3:
+                    rr(key);
+                    break;
+                case 0x4:
+                    sla(key);
+                    break;
+                case 0x5:
+                    sra(key);
+                    break;
+                case 0x6:
+                    swap(key);
+                    break;
+                case 0x7:
+                    srl(key);
+                    break;
+            }
+            break;
+        }
+        case 1:
+            bit(bit_index,key);
+            break;
+        case 2:
+            res(bit_index, key);
+            break;
+        case 3:
+            set(bit_index, key);
+            break;
 
-    switch (opcode){
-        case 0x0:
-            
-            break;
-        case 0x1:
-            break;
-        case 0x2:
-            break;
-        case 0x3:
-            break;
-        case 0x4:
-            break;
-        case 0x5:
-            break;
-        case 0x6:
-            break;
-        case 0x7:
-            break;
-        
-    }
+    }    
+    
 
 }

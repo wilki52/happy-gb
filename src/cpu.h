@@ -3,7 +3,11 @@
 
 #include <stdint.h>
 #include "memory.h"
+#include "display.h"
 #include <map>
+#include <SDL2/SDL.h>
+
+
 
 typedef union {
             uint16_t full;
@@ -22,6 +26,7 @@ class Cpu{
         //uint8_t load_rom(Memory ram);
 
         int read_rom(const char []);
+        int handle_input(SDL_Event event);
 
     private:
         uint8_t ime;
@@ -31,8 +36,9 @@ class Cpu{
         uint8_t IE; //0xFFFF
         uint8_t IF; //0xFF0F
 
-
-
+        int test();
+        uint8_t& get_r8_hl();
+        void set_r8_hl(uint8_t);
 
         //uint8_t a, f; //af = a + flag
                             //flags: bit 7: z, 6: n, 5: h, 4: c
@@ -63,6 +69,10 @@ class Cpu{
 
         int m_cycle;
         int t_state; 
+
+        
+
+        void check_IF();
 
         void set_flags(uint8_t z=0, uint8_t n=0, uint8_t h=0, uint8_t c=0);
 
@@ -160,6 +170,7 @@ class Cpu{
         void jp_hl();
 
         void call_cond(uint8_t cond);
+        void call(uint16_t address);
         void call();
         void rst(uint8_t target);
 
@@ -183,20 +194,18 @@ class Cpu{
         void ei();
 
         //prefixes
-        void rlc(uint8_t &reg);
-        void rrc(uint8_t &reg);
-        void rl(uint8_t &reg);
-        void rr(uint8_t &reg);
-        void sla(uint8_t &reg);
-        void sra(uint8_t &reg);
-        void swap(uint8_t &reg);
-        void srl(uint8_t &reg);
+        void rlc(uint8_t &);
+        void rrc(uint8_t &);
+        void rl(uint8_t &);
+        void rr(uint8_t &);
+        void sla(uint8_t &);
+        void sra(uint8_t &);
+        void swap(uint8_t &);
+        void srl(uint8_t &);
 
-        void bit(uint8_t &bit, uint8_t &operand);
-        void res(uint8_t &bit, uint8_t &operand);
-        void set(uint8_t &bit, uint8_t &operand);
-
-
+        void bit(uint8_t &bit_index, uint8_t &op_key);
+        void res(uint8_t &bit_index, uint8_t &op_key);
+        void set(uint8_t &bit_index, uint8_t &op_key);
 
 
         

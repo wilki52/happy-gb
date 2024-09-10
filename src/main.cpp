@@ -7,10 +7,12 @@ int main(){
     Happy gb;
     gb.load_rom("test_roms/cpu_instrs.gb");
     //gb.load_rom("test_roms/Breakout.ch8");
+    gb.run_program();
+   //while (true){
+    //    gb.cycle();
+    //}
+
     
-    while (true){
-        gb.cycle();
-    }
     /*
     uint8_t a = 255;
     uint8_t b= 255;

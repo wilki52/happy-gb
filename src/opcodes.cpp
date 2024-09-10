@@ -90,8 +90,6 @@ void Cpu::add_hl_from_r16(uint8_t operand){
 void Cpu::inc_r8(uint8_t key){
     std::cout << "inc r8" << std::endl;
     set_h(((((*reg8[key] & 0xF)+ (0x1)) & 0x10)== 0x10) ? 1 : 0);
-    
-    
     *reg8[key] = *reg8[key]+1;
     set_z(*reg8[key]==0 ? 1:0);
     set_n(0);
@@ -113,7 +111,7 @@ void Cpu::rlca(){
     std::cout << "rlca" << std::endl;
     //rotate to left. msb is added to carry.
     //flag set z=0, n=0, h=0, c: set according to result.
-    uint8_t carry = (af.high>> 7) & 0x1; //flag
+    uint8_t carry = (af.low>> 4) & 0x1; //flag
     af.high = af.high << 1 | carry&0x1;
     set_z(0);
     set_n(0);
@@ -123,7 +121,7 @@ void Cpu::rlca(){
 }
 void Cpu::rrca(){
     std::cout << "rrca" << std::endl;
-    uint8_t carry = (af.high) & 0x1; //flag
+    uint8_t carry = (af.low>> 4) & 0x1; //flag
     af.high = carry<<7 & 0xFF |af.high >> 1;
     set_z(0);
     set_n(0);
@@ -133,7 +131,7 @@ void Cpu::rrca(){
 void Cpu::rla(){
     std::cout << "rla" << std::endl;
 
-    uint8_t new_carry = (af.high>> 7) & 0x1; //flag
+    uint8_t new_carry = (af.low>> 4) & 0x1; //flag
     af.high = af.high << 1 | (af.low >>4) & 0x1;
     set_z(0);
     set_n(0);
@@ -144,7 +142,7 @@ void Cpu::rla(){
 }
 void Cpu::rra(){
     std::cout << "rra" << std::endl;
-                    uint8_t new_carry = (af.high) & 0x1; //flag
+                    uint8_t new_carry = (af.low>> 4) & 0x1; //flag
                     af.high = (af.low <<3 & 0x80) |af.high >> 1;
                     set_z(0);
                     set_n(0);
@@ -528,6 +526,15 @@ void Cpu::call_cond(uint8_t cond){
     }
 //todo
 }
+
+void Cpu::call(uint16_t address){
+    sp.full-=1;
+    write(sp.full, ((pc>>8) & 0xFF) );
+    sp.full-=1;
+    write(sp.full,(pc & 0xFF));
+    pc = address;
+    m_cycle+=1;
+}
 void Cpu::call(){
     uint8_t lo = read();
     uint8_t hi = read();
@@ -662,3 +669,154 @@ void Cpu::ei(){
     ime_hold =2 ;
     //only set after 
 }
+
+uint8_t& Cpu::get_r8_hl(){
+    uint16_t address = (hl.high << 7 | hl.low);
+    m_cycle+=2;
+    return ram->memory[address];
+    
+
+}
+
+//unused
+void Cpu::set_r8_hl(uint8_t val){
+    uint16_t address = (hl.high << 7 | hl.low);
+    ram->memory[address] = val;
+}
+
+void Cpu::rlc(uint8_t &key){
+    uint8_t& r8 = ((key==0x6) ? get_r8_hl() : *reg8[key]);
+
+    uint8_t msb = (r8 >> 7) & 0x1; //msb
+
+    r8 = (r8<<1)| msb;
+
+    set_z(r8);
+    set_n(0);
+    set_h(0);
+    set_c(msb);
+
+    m_cycle+=1;
+
+}
+
+void Cpu::rrc(uint8_t &key){
+    uint8_t& r8 = ((key==0x6) ? get_r8_hl() : *reg8[key]);
+
+    uint8_t lsb = r8 & 0x1;
+
+    r8 = (lsb<<7) | (r8>>1); 
+
+    set_z(r8);
+    set_n(0);
+    set_h(0);
+    set_c(lsb);
+    m_cycle+=1;
+
+}
+
+void Cpu::rl(uint8_t &key){
+    uint8_t& r8 = ((key==0x6) ? get_r8_hl() : *reg8[key]);
+    uint8_t carry = (r8 >> 7) & 0x1; //flag
+
+    r8 = (r8<<1) | carry;
+
+    set_z(r8);
+    set_n(0);
+    set_h(0);
+    set_c(carry);
+    m_cycle+=1;
+}
+
+void Cpu::rr(uint8_t &key){
+    uint8_t& r8 = ((key==0x6) ? get_r8_hl() : *reg8[key]);
+
+    uint8_t carry = (r8) & 0x1; //flag
+
+    r8 = (carry << 7) | (r8>>1);
+    set_z(r8);
+    set_n(0);
+    set_h(0);
+    set_c(carry);
+    m_cycle+=1;
+
+}
+
+void Cpu::sla(uint8_t &key){
+    uint8_t& r8 = ((key==0x6) ? get_r8_hl() : *reg8[key]);
+    
+    uint8_t carry = (r8 >>7) * 0x1;
+
+    r8 = r8<<1;
+    set_z(r8);
+    set_n(0);
+    set_h(0);
+    set_c(carry);
+    m_cycle+=1;
+
+}
+void Cpu::sra(uint8_t &key){
+    uint8_t& r8 = ((key==0x6) ? get_r8_hl() : *reg8[key]);
+    
+    uint8_t carry = r8 & 0x1;
+    uint8_t msb = (r8 >> 7)  & 0x1;
+    r8 = r8 & 0x1;
+    r8 = (msb<<7) | (r8>>1);
+    set_z(r8);
+    set_n(0);
+    set_h(0);
+    set_c(carry);
+    m_cycle+=1;
+}
+
+void Cpu::swap(uint8_t &key){
+    uint8_t& r8 = ((key==0x6) ? get_r8_hl() : *reg8[key]);
+
+    uint8_t low = r8 & 0xF;
+    r8 = (low<<4) | (r8 >>4);
+    set_z(r8);
+    set_n(0);
+    set_h(0);
+    set_c(0);
+    m_cycle+=1;
+
+}
+
+void Cpu::srl(uint8_t &key){
+    //shift right logically register r8
+    uint8_t& r8 = ((key==0x6) ? get_r8_hl() : *reg8[key]);
+
+    uint8_t carry = r8 * 0x1;
+    r8 = r8>>1;
+    set_z(r8);
+    set_n(0);
+    set_h(0);
+    set_c(carry);
+    m_cycle+=1;
+
+}
+
+void Cpu::bit(uint8_t &bit_index, uint8_t &op_key){
+    uint8_t& r8 = ((op_key==0x6) ? get_r8_hl() : *reg8[op_key]);
+
+    uint8_t bit = (r8 >> bit_index) &0x1;
+    set_z(bit);
+    set_n(0);
+    set_h(1);
+    m_cycle+=1;
+
+
+}
+
+void Cpu::res(uint8_t &bit_index, uint8_t &op_key){
+    uint8_t& r8 = ((op_key==0x6) ? get_r8_hl() : *reg8[op_key]);
+    r8 = (r8) & ~(0x1 << bit_index); 
+    m_cycle+=1;
+}
+        
+void Cpu::set(uint8_t &bit_index, uint8_t &op_key){
+    uint8_t& r8 = ((op_key==0x6) ? get_r8_hl() : *reg8[op_key]);
+    r8 = (r8) | (0x1 << bit_index);
+    m_cycle+=1;
+}
+

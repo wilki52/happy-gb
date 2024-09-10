@@ -2,6 +2,9 @@
 
 Memory::Memory(){
     cgb_flag = 0x0143;
+    //joypad
+    JOYP = 0XFF00;
+
     //time
     DIV = 0xFF04;
     TIMA = 0xFF05;

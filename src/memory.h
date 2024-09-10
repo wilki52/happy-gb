@@ -12,10 +12,11 @@ class Memory{
         //GRAPHICAL RAM
         //uint16_t video_memory[16000];
         uint8_t pixels [160*144]; //resolution //pixel might need to be 16bit to support 15bit rgb <-idk how this works lol
-
         //addresses
         uint16_t cgb_flag; //x80 = bc, xC0 = cgb only
 
+
+        uint16_t JOYP;
         uint16_t DIV;//increment at rate of 16384Hz. anytime this is written in, write 0!!!.
             //stop resets DIV. ticks only when stop mode ends.
             //affected by cgb doublespeed
@@ -23,10 +24,31 @@ class Memory{
         uint16_t TMA;
         uint16_t TAC;
 
-        uint16_t IF;
-        uint16_t IE;
+        //corresponding handler in IF/IE then calls call<address>. 
+        //PC pushed on stack, and set address of corresponding interrupt handler.
+        //5 m cycles
+        //bit 0: has highest priority
+        //bit 4: lowest priority.
 
+        uint16_t IF; //controls if handler is being requested.
+                //1 means it is being requested from X source.
+                //only means it is an interrupt. If IF is set, then it checks
+                    //IME=1 and IE's corresponding bit is also 1. then, interrupt occurs.
+
+        uint16_t IE; //controls if X interrupt handler can be called.
+        //if interrupt occurs: IF corresponding bit set to 0, then IME reset also.
+            //this means iinterrupt request was acknowledged. IME being set to 0 means no interupt can interupt our interupt.
+        //interrupt sources
+        //40
+        //48
+        //50
+        //58
+        //60
+        
+        
         //BACKGROUND 
+
+
         uint16_t SCY;
         uint16_t SCX;
         //LCD
