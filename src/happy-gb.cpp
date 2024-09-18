@@ -34,6 +34,8 @@ void Happy::run_program(){
             draw = 0;
         }
 
+        
+
     }
     // for (int i = 0x8000; i<0x8020; i++){
     //     if (ram.memory[i]){
@@ -41,9 +43,9 @@ void Happy::run_program(){
     //     }
     // }
     
-    for (int i = 0; i < sizeof(ram.memory); i++){
-        std::cout << ram.memory[i];
-    }
+    //for (int i = 0; i < sizeof(ram.memory); i++){
+    //    std::cout << ram.memory[i];
+    //}
     
 
 }
