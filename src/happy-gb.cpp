@@ -2,7 +2,7 @@
 #include <SDL2/SDL.h>
 
 //INIT REG MAPPING HERE
-Happy::Happy(): ram(), cpu(ram), display(){ //init ram, then init cpu constructor
+Happy::Happy(): ram(), cpu(ram), display(ram){ //init ram, then init cpu constructor
     //display.open();
     display.open();
 
@@ -37,8 +37,9 @@ void Happy::run_program(){
         
 
     }
+    display.print_vram();
     // for (int i = 0x8000; i<0x8020; i++){
-    //     if (ram.memory[i]){
+    //     if (true){
     //         std::cout << std::hex << i << ": " << signed(ram.memory[i]) <<  std::endl;
     //     }
     // }

@@ -21,6 +21,7 @@ class Display{
         //DDEBUG
 
         void view_vram();
+        void print_vram();
         void view_map();
 };
 

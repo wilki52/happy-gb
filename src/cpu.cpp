@@ -252,8 +252,11 @@ void Cpu::set_carry_if_borrow(uint8_t minuend, uint8_t subtrahend, uint8_t carry
 //return 8bit instruction
 uint8_t Cpu::fetch(){
     uint8_t instruction = ram->memory[pc];
+    std::cout << "address: " << std::hex << pc << "  instruction: "  << std::hex << signed(instruction) << std::endl;
     pc= pc+1;
     m_cycle+=1; //FETCH IS +1 m_cycle
+
+    
     return instruction;
 }
 
@@ -282,9 +285,8 @@ void Cpu::write(uint16_t address, uint8_t data){
 
 
 void Cpu::decode(uint8_t instruction){
-    std::cout << "instruction: "  << unsigned(instruction) << std::endl;
     uint8_t opcode = (instruction >> 6) & 0x3; //2 bits
-    std::cout << unsigned(opcode) << std::endl; //this works.
+
     //parse(opcode);
     switch (opcode){
         case 0: //block 0
