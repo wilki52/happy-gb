@@ -29,6 +29,8 @@ void Happy::run_program(){
         cycle();
         draw+=1;
 
+        //if sc is 81, shift sb. and output.
+        std::cout << ram.memory[ram.SB] << std::endl;
         if (draw==100){
             display.view_vram();
             draw = 0;
@@ -58,12 +60,14 @@ void Happy::cycle(){
 
     cpu.handle_interrupt();
 
-    SDL_Delay(10);
+    SDL_Delay(100);
 
     //if LCDC.7: PPU render
     if (ram.memory[(ram.LCDC >> 7)&0x1]==1){
         display.render_background();
     }
+
+    
 
 
 

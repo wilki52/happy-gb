@@ -550,6 +550,9 @@ void Cpu::call(){
 }
 
 void Cpu::rst(uint8_t target){
+    call(vec[target]);
+    return;
+
     sp.full-=1;
     write(sp.full, ((pc>>8) & 0xFF) );
     sp.full-=1;

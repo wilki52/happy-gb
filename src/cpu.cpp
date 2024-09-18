@@ -279,7 +279,7 @@ uint8_t Cpu::read(uint16_t address){
 void Cpu::write(uint16_t address, uint8_t data){
     ram->memory[address] = data;
 
-    pc= pc+1;
+    //pc= pc+1;
     m_cycle+=1; //writing IS +1 m_cycle
 }
 
@@ -316,10 +316,15 @@ void Cpu::decode(uint8_t instruction){
 void Cpu::decode_block0(uint8_t instruction){
     uint8_t opcode = instruction & 0xF; //gets first 4 bits,s tarting from lsb
     std::cout << unsigned(opcode) << std::endl;
-
+    std::cout << "block0";
+    uint8_t first_three_bits = instruction & 0x7;
+    switch (first_three_bits){
+        case 0:
+            break;
+        case 
+    }
     switch (opcode){
         case 0:
-
             if ((instruction >> 5 & 0x1)==1){ //if bit5==1
                 uint8_t condition = instruction >> 3 & 0x3;
                 jr_cc_n8(condition);
@@ -371,6 +376,8 @@ void Cpu::decode_block0(uint8_t instruction){
             break;
         }
         case 4:{
+            std::cout << "inc r8" << std::endl;
+
             uint8_t operand = instruction >> 3 & 0x7; //3 bits
             inc_r8(operand);
             break;

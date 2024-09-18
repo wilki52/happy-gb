@@ -68,7 +68,9 @@ class Memory{
         uint16_t BGP;
         //graphics
         
-
+        //SERIAL TRANSFER
+        uint16_t SB;
+        uint16_t SC;
 
         Memory();
 };
