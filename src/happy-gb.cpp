@@ -14,6 +14,8 @@ void Happy::run_program(){
     std::cout << "run program" << std::endl;
     bool running = true;
 
+    display.view_vram();
+    uint8_t draw = 0;
     while (running){
         if (SDL_PollEvent(&e)!=0){
             SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
@@ -24,20 +26,42 @@ void Happy::run_program(){
 
         }
 
-        //cycle();
+        cycle();
+        draw+=1;
+
+        if (draw==100){
+            display.view_vram();
+            draw = 0;
+        }
 
     }
+    // for (int i = 0x8000; i<0x8020; i++){
+    //     if (ram.memory[i]){
+    //         std::cout << std::hex << i << ": " << signed(ram.memory[i]) <<  std::endl;
+    //     }
+    // }
+    
+    for (int i = 0; i < sizeof(ram.memory); i++){
+        std::cout << ram.memory[i];
+    }
+    
+
 }
 
 void Happy::cycle(){
     uint8_t instruction = cpu.fetch();
     
-
-    //std::cout<< instruction;
-    SDL_Delay(10);
     cpu.decode(instruction); 
 
-    SDL_Event e;
+    cpu.handle_interrupt();
+
+    SDL_Delay(10);
+
+    //if LCDC.7: PPU render
+    if (ram.memory[(ram.LCDC >> 7)&0x1]==1){
+        display.render_background();
+    }
+
 
 
 }
@@ -46,5 +70,6 @@ void Happy::cycle(){
 
 int Happy::load_rom(const char path[]){
     int pass = cpu.read_rom(path);
+
     return pass;
 }

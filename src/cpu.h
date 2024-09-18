@@ -27,8 +27,11 @@ class Cpu{
 
         int read_rom(const char []);
         int handle_input(SDL_Event event);
+        void handle_interrupt();
 
     private:
+        uint8_t input[8] = {1,1,1,1,1,1,1,1}; //high= buttons, //low = dpad
+
         uint8_t ime;
         uint8_t ime_hold; //use to hold ime flag for next instruction
 
@@ -72,7 +75,7 @@ class Cpu{
 
         
 
-        void check_IF();
+        
 
         void set_flags(uint8_t z=0, uint8_t n=0, uint8_t h=0, uint8_t c=0);
 

@@ -45,6 +45,7 @@ Cpu::Cpu(Memory& ram): ram(&ram){
     vec[0x7] = 0x38; //11 11 1 111 //FF
 
     //test();
+
     
 
 }
@@ -99,33 +100,58 @@ int Cpu::read_rom(const char path[]){
 }
 
 int Cpu::handle_input(SDL_Event event){
-    if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP){
-        bool is_pressed = (event.type==SDL_KEYDOWN);
+    if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP){ //|| event.type == SDL_KEYUP
+        int is_pressed = ((event.type==SDL_KEYDOWN) ? 0: 1);
+
+        uint8_t joyp = ram->memory[ram->JOYP];
+        //JOYP SET BY HARDWARE.
         switch (event.key.keysym.scancode){
             case SDL_SCANCODE_UP:
-                std::cout << "up" << std::endl;
+
+                input[2] = is_pressed;
+                std::cout << "up: " << is_pressed << std::endl;
                 break;
             case SDL_SCANCODE_DOWN:
-                std::cout << "down" << std::endl;
+                std::cout << "down: " << is_pressed << std::endl;
+                input[3] = is_pressed;
+
                 break;
             case SDL_SCANCODE_LEFT:
-                std::cout << "left" << std::endl;
+                std::cout << "left: " << is_pressed << std::endl;
+                input[1] = is_pressed;
+
                 break;
             case SDL_SCANCODE_RIGHT:
-                std::cout << "right" << std::endl;
+                std::cout << "right: " << is_pressed << std::endl;
+                input[0] = is_pressed;
+
                 break;
             case SDL_SCANCODE_X:
-                std::cout << "A" << std::endl;
+                std::cout << "A: " << is_pressed << std::endl;
+                input[4] = is_pressed;
+
                 break;
             case SDL_SCANCODE_Z:
-                std::cout << "B" << std::endl;
+                std::cout << "B: " << is_pressed << std::endl;
+                input[5] = is_pressed;
+
                 break;
             case SDL_SCANCODE_TAB:
-                std::cout << "TAB" << std::endl;
+                std::cout << "TAB: " << is_pressed << std::endl;
+                input[6] = is_pressed;
+
                 break;
             case SDL_SCANCODE_RETURN:
-                std::cout << "RETURN" << std::endl;
+                std::cout << "RETURN: " << is_pressed << std::endl;
+                input[7] = is_pressed;
+
                 break;
+
+            if (is_pressed ==0){
+                //REQUEST
+                ram->memory[ram->IF] = (ram->memory[ram->IF]) | 0x8; //set bit 4 to 1.
+            }
+
             
             
         }
@@ -134,8 +160,12 @@ int Cpu::handle_input(SDL_Event event){
 
 }
 
+void check_TIMA_overflow(){
+    //checks if 
+}
 
-void Cpu::check_IF(){
+//formerly check_if
+void Cpu::handle_interrupt(){
     uint8_t int_flag = ram->memory[ram->IF];
     if (int_flag>0){
         //find which bit is raised.
@@ -160,7 +190,7 @@ void Cpu::check_IF(){
             uint8_t bit = 3;
             address= 0x0058;
         }
-        else if (((int_flag >>4)& 0x1)==0x1){
+        else if (((int_flag >>4)& 0x1)==0x1){ //joyp
             //bit 0
             uint8_t bit = 4;
             address= 0x0060;
@@ -168,7 +198,7 @@ void Cpu::check_IF(){
 
         if (ime==1 && ((handler>>bit) & 0x1) ==1){
                 call(address);
-            }
+        }
     }
 }
 void Cpu::set_z(uint8_t z){

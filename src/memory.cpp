@@ -14,9 +14,12 @@ Memory::Memory(){
     //interrupts
     IF = 0xFF0F;
     IE = 0xFFFF;
+    
 
     LCDC = 0xFF40;
     LY = 0xFF44;
     LYC = 0xFF45;
     STAT = 0xFF41;
+    BGP = 0xFF47;
+    
 }

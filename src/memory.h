@@ -7,6 +7,14 @@ class Memory{
     private:
         //RAM
         friend class Cpu;
+
+
+
+
+        void pop_stack(uint16_t pointer);
+        void push_stack(uint16_t pointer);
+    public:
+        
         uint8_t memory[65535]; //up to FFFF
        //stack is at the top of memory, and decrements down. REMEMBER THIS!!
         //GRAPHICAL RAM
@@ -52,22 +60,16 @@ class Memory{
         uint16_t SCY;
         uint16_t SCX;
         //LCD
-        uint16_t LCDC; //
+        uint16_t LCDC; //LCD CONTROL
         uint16_t LY; //
         uint16_t LYC; //
         uint16_t STAT; //
 
-
+        uint16_t BGP;
         //graphics
         
 
 
-
-
-        void pop_stack(uint16_t pointer);
-        void push_stack(uint16_t pointer);
-    public:
-        
         Memory();
 };
 
