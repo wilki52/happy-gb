@@ -8,6 +8,7 @@ Cpu::Cpu(){
 Cpu::Cpu(Memory& ram): ram(&ram){
     //init sp
     //sp = {0};
+    sb_count = 0;
     ime_hold = 0;
     ime = 0;
     pc = 0;
@@ -64,6 +65,13 @@ int Cpu::test(){
     std::cout << unsigned(*reg8[0]) << std::endl;
     std::cout << unsigned(r8) << std::endl;
 
+}
+
+//who do i send the bit to? 
+int Cpu::shift_sb()
+{
+    //print msb. 
+    std::cout << ram->memory[ram->SB];
 }
 
 int Cpu::read_rom(const char path[]){
@@ -149,7 +157,7 @@ int Cpu::handle_input(SDL_Event event){
 
             if (is_pressed ==0){
                 //REQUEST
-                ram->memory[ram->IF] = (ram->memory[ram->IF]) | 0x8; //set bit 4 to 1.
+                ram->memory[ram->IF] = (ram->memory[ram->IF]) | 0x1F; //set bit 4 to 1.
             }
 
             
@@ -166,31 +174,31 @@ void check_TIMA_overflow(){
 
 //formerly check_if
 void Cpu::handle_interrupt(){
-    uint8_t int_flag = ram->memory[ram->IF];
-    if (int_flag>0){
+    uint8_t IF = ram->memory[ram->IF];
+    if (IF>0){
         //find which bit is raised.
         uint8_t bit;
         uint8_t handler = ram->memory[ram->IE];
         uint16_t address;
     //conditional due to priority system. i want to be accurate
     //so i grabbed corresponding bit first.
-        if ((int_flag & 0x1)==0x1){
+        if ((IF & 0x1)==0x1){
             uint8_t bit = 0;
             address= 0x0040;
         }
-        else if (((int_flag >>1) & 0x1)==0x1){
+        else if (((IF >>1) & 0x1)==0x1){
             uint8_t bit = 1;
             address= 0x0048;
         }
-        else if (((int_flag >>2)& 0x1)==0x1){
+        else if (((IF >>2)& 0x1)==0x1){
             uint8_t bit = 2;
             address= 0x0050;
         }
-        else if (((int_flag >>3) & 0x1)==0x1){
+        else if (((IF >>3) & 0x1)==0x1){
             uint8_t bit = 3;
             address= 0x0058;
         }
-        else if (((int_flag >>4)& 0x1)==0x1){ //joyp
+        else if (((IF >>4)& 0x1)==0x1){ //joyp
             //bit 0
             uint8_t bit = 4;
             address= 0x0060;
@@ -252,7 +260,8 @@ void Cpu::set_carry_if_borrow(uint8_t minuend, uint8_t subtrahend, uint8_t carry
 //return 8bit instruction
 uint8_t Cpu::fetch(){
     uint8_t instruction = ram->memory[pc];
-    std::cout << "address: " << std::hex << pc << "  instruction: "  << std::hex << signed(instruction) << std::endl;
+    //std::cout << "address: " << std::hex << pc << "  instruction: "  << std::hex << signed(instruction) << std::endl;
+    std::cout<< std::endl;
     pc= pc+1;
     m_cycle+=1; //FETCH IS +1 m_cycle
 
@@ -286,7 +295,7 @@ void Cpu::write(uint16_t address, uint8_t data){
 
 void Cpu::decode(uint8_t instruction){
     uint8_t opcode = (instruction >> 6) & 0x3; //2 bits
-
+    std::cout.setstate(std::ios_base::failbit);
     //parse(opcode);
     switch (opcode){
         case 0: //block 0
@@ -302,7 +311,8 @@ void Cpu::decode(uint8_t instruction){
             decode_block3(instruction);
             break;
     }
-
+    std::cout.clear();
+    
     //ime check
     
     if (ime_hold ==1){
@@ -311,43 +321,59 @@ void Cpu::decode(uint8_t instruction){
     if (ime_hold >0){
         ime_hold-=1;
     }
+
 }
 
 void Cpu::decode_block0(uint8_t instruction){
     uint8_t opcode = instruction & 0xF; //gets first 4 bits,s tarting from lsb
     std::cout << unsigned(opcode) << std::endl;
-    std::cout << "block0";
     uint8_t first_three_bits = instruction & 0x7;
     switch (first_three_bits){
         case 0:
-            break;
-        case 
-    }
-    switch (opcode){
-        case 0:
-            if ((instruction >> 5 & 0x1)==1){ //if bit5==1
+            switch (instruction){
+                case 0x0:
+                    //nop
+                    std::cout << "NOP (iterate pc)" << std::endl;
+                    break;
+                case 0b00001000:
+                    //ld imm16, sp
+                    ld_to_n16mem();
+                    break;
+                case 0b00011000:
+                    //jr imm8
+                    std::cout << "jr imm8" << std::endl;
+                    jr_n8();
+                    break;
+                case 0b00010000:
+                    //stop
+                    std::cout << "stop" << std::endl;
+                    //TODO: enter low power mode. use to swtich between double/normal speed CPU in gbc.
+                    break;
+                
+            }
+            if (((instruction >>5) & 0x1)==0x1){
+                //jr cond
                 uint8_t condition = instruction >> 3 & 0x3;
                 jr_cc_n8(condition);
-
-            }
-            else{
-                uint8_t bits43 = instruction >> 3 & 0x2;
-                switch (bits43){
-                    case 3:
-                        std::cout << "jr imm8" << std::endl;
-                        jr_n8();
-                        break;
-                    case 2:
-                        std::cout << "stop" << std::endl;
-                        //TODO: enter low power mode. use to swtich between double/normal speed CPU in gbc.
-                        break;
-                    case 0:
-                        std::cout << "NOP" << std::endl;
-                        //no operation, just use to skip pc. already done with fetch.
-                        break;
-                }
             }
             break;
+        case 4:{
+            uint8_t operand = instruction >> 3 & 0x7; //3 bits
+            inc_r8(operand);
+            break;
+        }
+        case 5:{
+            uint8_t operand = instruction >> 3 & 0x7; //3 bits
+            dec_r8(operand);
+            break;
+        }
+        case 6:{
+            uint8_t operand = instruction >> 3 & 0x7; //3 bits
+            ld_r8_n8(operand);
+            break; 
+        }
+    }
+    switch (opcode){
         case 1:
             ld_r16(((instruction >> 4) & 0x3));
             break;
@@ -357,9 +383,6 @@ void Cpu::decode_block0(uint8_t instruction){
         case 10:
             ld_a_from_r16mem(af.high, instruction >> 4 & 0x3);
             break; 
-        case 8:
-            ld_to_n16mem();
-            break;
         case 3:{
             uint8_t operand = instruction >> 4 & 0x3;
             inc_r16(operand);
@@ -373,23 +396,6 @@ void Cpu::decode_block0(uint8_t instruction){
         case 9:{
             uint8_t operand = instruction >> 4 & 0x3;
             add_hl_from_r16(operand);
-            break;
-        }
-        case 4:{
-            std::cout << "inc r8" << std::endl;
-
-            uint8_t operand = instruction >> 3 & 0x7; //3 bits
-            inc_r8(operand);
-            break;
-        }
-        case 5:{
-            uint8_t operand = instruction >> 3 & 0x7; //3 bits
-            dec_r8(operand);
-            break;
-        }
-        case 6:{
-            uint8_t operand = instruction >> 3 & 0x7; //3 bits
-            ld_r8_n8(operand);
             break;
         }
         case 7:{

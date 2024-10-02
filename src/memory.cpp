@@ -6,6 +6,7 @@ Memory::Memory(){
     JOYP = 0xFF00;
 
     //serial transfer
+   
     SB = 0xFF01;
     SC = 0xFF02;
 

@@ -25,12 +25,34 @@ void Happy::run_program(){
             cpu.handle_input(e);
 
         }
-
+        
         cycle();
-        draw+=1;
 
+        draw+=1;
+        std::cout << "hello";
         //if sc is 81, shift sb. and output.
-        std::cout << ram.memory[ram.SB] << std::endl;
+        std::cout << ram.memory[ram.SB];
+
+        if ((ram.memory[ram.SC] >> 7) ==0x1 ){
+        //if (cpu.sb_count <8){
+            //std::cout << ram.memory[ram.SB];
+             //SHIFT SB.
+             cpu.shift_sb();
+             cpu.sb_count+=1;
+
+             if (cpu.sb_count >=8)
+             {
+                //SC set to 0
+                ram.memory[ram.SC] = 0x01;
+                //Signal interrupt
+                ram.memory[ram.IF] = (ram.memory[ram.IF]) | 0x8;
+                cpu.sb_count =0;
+
+             }
+
+
+         }
+
         if (draw==100){
             display.view_vram();
             draw = 0;
@@ -54,6 +76,7 @@ void Happy::run_program(){
 }
 
 void Happy::cycle(){
+    
     uint8_t instruction = cpu.fetch();
     
     cpu.decode(instruction); 

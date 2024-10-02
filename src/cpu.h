@@ -29,6 +29,9 @@ class Cpu{
         int handle_input(SDL_Event event);
         void handle_interrupt();
 
+        uint8_t sb_count;
+        int shift_sb();
+
     private:
         uint8_t input[8] = {1,1,1,1,1,1,1,1}; //high= buttons, //low = dpad
 
