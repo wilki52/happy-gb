@@ -29,7 +29,7 @@ void Happy::run_program(){
         cycle();
 
         draw+=1;
-        std::cout << "hello";
+        //std::cout << "hello";
         //if sc is 81, shift sb. and output.
         std::cout << ram.memory[ram.SB];
 

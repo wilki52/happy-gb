@@ -71,7 +71,8 @@ int Cpu::test(){
 int Cpu::shift_sb()
 {
     //print msb. 
-    std::cout << ram->memory[ram->SB];
+    std::cout << "SB: " << std::hex << (ram->memory[ram->SB]>>7);
+    ram->memory[ram->SB] = ram->memory[ram->SB] <<1;
 }
 
 int Cpu::read_rom(const char path[]){
@@ -286,6 +287,49 @@ uint8_t Cpu::read(uint16_t address){
 
 //write to memory
 void Cpu::write(uint16_t address, uint8_t data){
+    if (address==0xFF01)
+    {
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+        std::cout << "PANIC!!!!" << std::endl;
+    }
     ram->memory[address] = data;
 
     //pc= pc+1;
@@ -295,7 +339,7 @@ void Cpu::write(uint16_t address, uint8_t data){
 
 void Cpu::decode(uint8_t instruction){
     uint8_t opcode = (instruction >> 6) & 0x3; //2 bits
-    std::cout.setstate(std::ios_base::failbit);
+    //std::cout.setstate(std::ios_base::failbit);
     //parse(opcode);
     switch (opcode){
         case 0: //block 0
@@ -311,7 +355,7 @@ void Cpu::decode(uint8_t instruction){
             decode_block3(instruction);
             break;
     }
-    std::cout.clear();
+    //std::cout.clear();
     
     //ime check
     

@@ -2,9 +2,10 @@
 #include "happy-gb.h"
 #include <stdint.h>
 int main(){
-    std::cout<< "hello world" << std::endl;
+    std::cout<< "hello cmake" << std::endl;
 
     Happy gb;
+    
     //gb.load_rom("roms/tetris.gb");
     // gb.load_rom("roms/doctor.gb");
     gb.load_rom("test_roms/cpu_instrs.gb");
