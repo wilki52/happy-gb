@@ -3,6 +3,8 @@ project(happygb VERSION 1.0
 DESCRIPTION "gameboy emulator"
 LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 11)  # Or 14, 17, etc., depending on what you need
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 #find_package(SDL2 REQUIRED)
 
 file(GLOB SOURCES "src/*.cpp")

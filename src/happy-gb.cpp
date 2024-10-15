@@ -3,10 +3,14 @@
 
 //INIT REG MAPPING HERE
 Happy::Happy(): ram(), cpu(ram), display(ram){ //init ram, then init cpu constructor
-    //display.open();
     display.open();
+}
 
-
+void Happy::run_tests(){
+    JsonTest tester(ram, cpu);
+    tester.run_tests("tests/cpu/v2/01.json");
+    
+    //tester.read_json("tests/cpu/v2/01.json");
 }
 
 void Happy::run_program(){

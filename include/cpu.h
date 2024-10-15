@@ -32,6 +32,17 @@ class Cpu{
         uint8_t sb_count;
         int shift_sb();
 
+        Register sp;
+        Register af;
+        Register bc;
+        Register de;
+        Register hl;
+        Register counter; //depreciated... no point
+        uint16_t pc; //16 bits to point to 32kb memory.
+
+        std::map<uint8_t, Register*> reg16;
+        std::map<uint8_t, uint8_t> vec; //rst vectors
+
     private:
         uint8_t input[8] = {1,1,1,1,1,1,1,1}; //high= buttons, //low = dpad
 
@@ -54,17 +65,9 @@ class Cpu{
         //uint8_t s,p; //usually 16 bits, but i put into hi/lo to help with maps. trust.
 
         //
-        Register sp;
-        Register af;
-        Register bc;
-        Register de;
-        Register hl;
-        Register counter;
-
-        std::map<uint8_t, Register*> reg16;
-        std::map<uint8_t, uint8_t> vec; //rst vectors
+        
         //std::map<uint8_t, uint8_t*> map to functions? get_z, get_c.
-        uint16_t pc; //16 bits to point to 32kb memory.
+       
         //flags
         //uint8_t zf; //zero flag
         //uint8_t nf; //subtraction flag (bcd)//used by DAA instruction only

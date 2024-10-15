@@ -7,6 +7,7 @@
 #include "memory.h"
 #include "cpu.h"
 #include "display.h"
+#include "json_test.h"
 class Happy{
     private:
         //CPU specifications
@@ -26,6 +27,8 @@ class Happy{
         void cycle();
         int load_rom(const char path[]);
         void run_program();
+
+        void run_tests();
 };
 
 

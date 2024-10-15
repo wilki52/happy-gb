@@ -277,11 +277,16 @@ uint8_t Cpu::read(){
     m_cycle+=1; //FETCH IS +1 m_cycle
     return int_8;
 }
+
 uint8_t Cpu::read(uint16_t address){
-    uint8_t val = ram->memory[address];
+    uint8_t val = ram->memory[address]; //uses bus...should i store this? so it checks cycle each time.
     m_cycle+=1; //FETCH IS +1 m_cycle
     return val;
 }
+
+//bus : (address, value, r or w)
+
+//every write or read updates bus, and every cycle must be compared?
 
 
 
