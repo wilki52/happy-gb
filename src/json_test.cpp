@@ -2,14 +2,15 @@
 #include <fstream>
 
 #include <iostream>
-
+#include <filesystem>
+namespace fs = std::filesystem;
 
 JsonTest::JsonTest(){}
 JsonTest::JsonTest(Memory& ram,Cpu& cpu): ram(&ram), cpu(&cpu){
 
 }
 
-json JsonTest::read_json(const char path[])
+json JsonTest::read_json(const char* path)
 {
     std::ifstream f(path);
 
@@ -76,10 +77,22 @@ void JsonTest::initialize(json data)
     //std::cout << "test " << counter << " : " << data["name"] << "passed" << std::endl;
     counter+=1;
 }
-void JsonTest::run_tests(const char path[])
+
+void JsonTest::run_all_tests(const char path[])
+{
+    //
+    for (const auto & entry : fs::directory_iterator(path))
+    {
+        //std::cout << entry.path().string() << std::endl;
+        run_tests(entry.path().string());
+    }
+        
+
+}
+void JsonTest::run_tests(std::string path)
 {
     counter = 0;
-    json tests = read_json(path);
+    json tests = read_json(path.c_str());
 
     for (json test : tests){
         run_test(test);

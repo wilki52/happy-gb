@@ -18,8 +18,10 @@ class JsonTest{
     public:
         JsonTest();
         JsonTest(Memory&, Cpu&);
-        json read_json(const char path[]); 
-        void run_tests(const char path[]);
+        json read_json(const char* path); 
+
+        void run_all_tests(const char path[]);
+        void run_tests(std::string path);
         void run_test(json data); 
         void compare_results();
     private:

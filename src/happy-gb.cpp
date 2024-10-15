@@ -8,7 +8,8 @@ Happy::Happy(): ram(), cpu(ram), display(ram){ //init ram, then init cpu constru
 
 void Happy::run_tests(){
     JsonTest tester(ram, cpu);
-    tester.run_tests("tests/cpu/v2/01.json");
+    //tester.run_tests("tests/cpu/v2/01.json");
+    tester.run_all_tests("tests/cpu/v2");
     
     //tester.read_json("tests/cpu/v2/01.json");
 }
