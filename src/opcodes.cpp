@@ -4,7 +4,7 @@
 void nop();
 
 void Cpu::ld_r16(uint8_t dest){
-    std::cout << "LD r16, imm16" << std::endl;
+    //std::cout << "LD r16, imm16" << std::endl;
     uint8_t low = read();
     reg16[dest]->low = low; //c
             
@@ -15,7 +15,7 @@ void Cpu::ld_r16(uint8_t dest){
 } //ld r16, imm16
 
 void Cpu::ld_to_r16mem(uint16_t address, uint8_t &reg){
-    std::cout << "LD [R16mem], A" << std::endl;
+    //std::cout << "LD [R16mem], A" << std::endl;
 
     switch (address){
         case 0:
@@ -35,7 +35,7 @@ void Cpu::ld_to_r16mem(uint16_t address, uint8_t &reg){
 
 } //ld [r16mem], a
 void Cpu::ld_a_from_r16mem(uint8_t &reg, uint16_t address){
-    std::cout << "LD A, [R16mem]" << std::endl;
+    //std::cout << "LD A, [R16mem]" << std::endl;
     switch (address){
         case 0:
                     reg = read(reg16[address]->full); //bc
@@ -54,7 +54,7 @@ void Cpu::ld_a_from_r16mem(uint8_t &reg, uint16_t address){
 } //ld a, [r16mem]
 
 void Cpu::ld_to_n16mem(){
-    std::cout << "LD [imm16], sp" << std::endl;
+    //std::cout << "LD [imm16], sp" << std::endl;
 
     uint8_t low = read();
     uint8_t hi = read();
@@ -64,17 +64,17 @@ void Cpu::ld_to_n16mem(){
 }
 
 void Cpu::inc_r16(uint8_t r_key){
-    std::cout << "inc r16" << std::endl;
+    //std::cout << "inc r16" << std::endl;
     reg16[r_key]->full = reg16[r_key]->full+1;
     m_cycle+=1;
 }
 void Cpu::dec_r16(uint8_t r_key){
-    std::cout << "dec r16" << std::endl;
+    //std::cout << "dec r16" << std::endl;
     reg16[r_key]->full = reg16[r_key]->full-1;
     m_cycle+=1;
 }
 void Cpu::add_hl_from_r16(uint8_t operand){
-    std::cout << "add hl, r16" << std::endl;
+    //std::cout << "add hl, r16" << std::endl;
     uint16_t op = reg16[operand]->full;
     uint8_t &h = reg16[operand]->high;
     uint8_t &l = reg16[operand]->low;
@@ -88,14 +88,14 @@ void Cpu::add_hl_from_r16(uint8_t operand){
 }
 
 void Cpu::inc_r8(uint8_t key){
-    std::cout << "inc r8" << std::endl;
+    //std::cout << "inc r8" << std::endl;
     set_h(((((*reg8[key] & 0xF)+ (0x1)) & 0x10)== 0x10) ? 1 : 0);
     *reg8[key] = *reg8[key]+1;
     set_z(*reg8[key]==0 ? 1:0);
     set_n(0);
 }
 void Cpu::dec_r8(uint8_t key){
-    std::cout << "dec r8" << std::endl;
+    //std::cout << "dec r8" << std::endl;
     set_half_if_overflow_8(*reg8[key], 0x1);
     *reg8[key] = *reg8[key]-1;
     set_z( (*reg8[key]==0)? 1:0);
@@ -103,12 +103,12 @@ void Cpu::dec_r8(uint8_t key){
 }
 
 void Cpu::ld_r8_n8(uint8_t key){
-    std::cout << "ld r8, imm8" << std::endl;
+    //std::cout << "ld r8, imm8" << std::endl;
     uint8_t instruction = read();
     *reg8[key] = instruction;
 } //ld r8, imm8
 void Cpu::rlca(){
-    std::cout << "rlca" << std::endl;
+    //std::cout << "rlca" << std::endl;
     //rotate to left. msb is added to carry.
     //flag set z=0, n=0, h=0, c: set according to result.
     uint8_t carry = (af.low>> 4) & 0x1; //flag
@@ -120,7 +120,7 @@ void Cpu::rlca(){
 
 }
 void Cpu::rrca(){
-    std::cout << "rrca" << std::endl;
+    //std::cout << "rrca" << std::endl;
     uint8_t carry = (af.low>> 4) & 0x1; //flag
     af.high = carry<<7 & 0xFF |af.high >> 1;
     set_z(0);
@@ -129,7 +129,7 @@ void Cpu::rrca(){
     set_c(carry);
 }
 void Cpu::rla(){
-    std::cout << "rla" << std::endl;
+    //std::cout << "rla" << std::endl;
 
     uint8_t new_carry = (af.low>> 4) & 0x1; //flag
     af.high = af.high << 1 | (af.low >>4) & 0x1;
@@ -141,7 +141,7 @@ void Cpu::rla(){
 
 }
 void Cpu::rra(){
-    std::cout << "rra" << std::endl;
+    //std::cout << "rra" << std::endl;
                     uint8_t new_carry = (af.low>> 4) & 0x1; //flag
                     af.high = (af.low <<3 & 0x80) |af.high >> 1;
                     set_z(0);
@@ -152,7 +152,7 @@ void Cpu::rra(){
 void Cpu::daa(){} //todo
 
 void Cpu::cpl(){
-    std::cout << "cpl" << std::endl;
+    //std::cout << "cpl" << std::endl;
                     //complement accuulator
                     af.high = ~af.high;
                     set_n(1);
@@ -160,12 +160,12 @@ void Cpu::cpl(){
 }
 void Cpu::scf(){
 
-    std::cout << "scf: set carry flag" << std::endl;
+    //std::cout << "scf: set carry flag" << std::endl;
                     //set carry flag
                     set_c(1);
 }
 void Cpu::ccf(){
-    std::cout << "ccf" << std::endl;
+    //std::cout << "ccf" << std::endl;
                     af.low = af.low ^ 0x80; //toggles c flag.
                     set_n(0);
                     set_h(0);
@@ -180,7 +180,7 @@ void Cpu::jr_n8(){
 }
 
 void Cpu::jr_cc_n8(uint8_t condition){
-    std::cout << "jr cond, imm8" << std::endl;
+    //std::cout << "jr cond, imm8" << std::endl;
     int8_t imm8 = read();
     switch (condition){
                     case 0:{
@@ -225,7 +225,7 @@ void Cpu::jr_cc_n8(uint8_t condition){
 //block 1
 
 void Cpu::ld_r8_r8(uint8_t dest, uint8_t src){
-    std::cout << "ld r8, r8" << std::endl;
+    //std::cout << "ld r8, r8" << std::endl;
      *reg8[dest] = *reg8[src];
 }
         void Cpu::halt(){}
@@ -495,34 +495,47 @@ void Cpu::jp_hl(){
 
 void Cpu::call_cond(uint8_t cond){
     uint8_t &f = af.low;
-
+    std::cout << "f" << (signed)f << std::endl;
     switch (cond){
         case 0:
             //if z==0
             if ((f& 0x80)==0){
-                call();
+                call(); 
             }
-            else m_cycle+=2;
+            else {
+                m_cycle+=2;
+                pc+=2;
+            }
+                
             break;
         case 1:
             //if z==1
             if ((f& 0x80)==1){
                 call();
             }
-            else m_cycle+=2;
+            else {
+                m_cycle+=2;
+                pc+=2;
+            }
             break;
         case 2:
             //if c==0
             if ((f& 0x10)==0){
                 call();
             }
-            else m_cycle+=2;
+            else {
+                m_cycle+=2;
+                pc+=2;
+            }
             break;
         case 3:
             if ((f& 0x10)==1){
                 call();
             }
-            else m_cycle+=2;
+            else {
+                m_cycle+=2;
+                pc+=2;
+            }
     }
 //todo
 }
@@ -534,8 +547,10 @@ void Cpu::call(uint16_t address){
     write(sp.full,(pc & 0xFF));
     pc = address;
     m_cycle+=1;
+
 }
 void Cpu::call(){
+    std::cout << "calling" << std::endl;
     uint8_t lo = read();
     uint8_t hi = read();
 
@@ -547,7 +562,8 @@ void Cpu::call(){
     //jump
     pc = (hi <<8)| lo;
     m_cycle+=1; //16 bits twice. 
-}
+    std::cout << "sp and pc: " << (signed)sp.full << " " << (signed)pc << std::endl;
+ }
 
 void Cpu::rst(uint8_t target){
     call(vec[target]);

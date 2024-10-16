@@ -24,6 +24,7 @@ class JsonTest{
         void run_tests(std::string path);
         void run_test(json data); 
         void compare_results();
+        void print_error_state(json);
     private:
         int counter = 0;
         void initialize(json data);
