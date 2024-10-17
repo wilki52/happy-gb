@@ -79,7 +79,6 @@ void JsonTest::initialize(json data)
    }
 
     //std::cout << "test " << counter << " : " << data["name"] << "passed" << std::endl;
-    counter+=1;
 }
 
 
@@ -97,7 +96,7 @@ void JsonTest::print_error_state(json data)
     }
     if (cpu->af.low != log["f"].get<int>())
     {
-        std::cout << "'f:'" << (signed)cpu->af.low << std::endl;
+        std::cout << "f: 0d" << std::dec << (signed)cpu->af.low << std::endl;
     }
     if (cpu->bc.high != log["b"].get<int>())
     {
@@ -126,17 +125,17 @@ void JsonTest::print_error_state(json data)
 
     if (cpu->sp.full != log["sp"].get<int>())
     {
-        std::cout << "'sp:'" << (signed)cpu->af.high << std::endl;
+        std::cout << "sp: 0d" << std::dec  <<(signed)cpu->sp.full << std::endl;
     }
     if (cpu->pc != log["pc"].get<int>()-1)
     {
-        std::cout << "'pc:'" << (signed)cpu->af.high << std::endl;
+        std::cout << "'pc:'" << (signed)cpu->pc << std::endl;
     }
 
     for (json mem : log["ram"])
     {
         if (ram->memory[mem[0].get<int>()] != mem[1].get<int>())
-            std::cout << "memory address: "<< (signed)mem[0].get<int>()<< ": " << (signed)ram->memory[mem[0].get<int>()] << std::endl;
+            std::cout << "memory address: 0d"<< std::dec << (signed)mem[0].get<int>()<< ": 0d" << std::dec << (signed)ram->memory[mem[0].get<int>()] << std::endl;
     }
 
     abort();
@@ -146,7 +145,8 @@ void JsonTest::run_all_tests(const char path[])
     //
     for (const auto & entry : fs::directory_iterator(path))
     {
-        std::cout << "running file: " << entry.path().string() << std::endl;
+        std::cout << "running file " << counter << ": " << entry.path().string() << std::endl;
+        counter++;
         run_tests(entry.path().string());
     }
 
@@ -156,7 +156,6 @@ void JsonTest::run_all_tests(const char path[])
 }
 void JsonTest::run_tests(std::string path)
 {
-    counter = 0;
     json tests = read_json(path.c_str());
 
     for (json test : tests){
@@ -174,7 +173,7 @@ void JsonTest::compare_results()
 }
 void JsonTest::run_test(json data)
 {
-    std::cout << "starting new test" << std::endl;
+    std::cout << "starting new test : "<< data["name"] << std::endl;
     initialize(data);
 
     //set initial processor state from test;

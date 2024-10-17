@@ -26,7 +26,7 @@ Cpu::Cpu(Memory& ram): ram(&ram){
     reg8[0x4] = &hl.high;
     reg8[0x5] = &hl.low; //holds uint8_t
     //reg8_new[0x6] = &h;//8 bits at [hl]
-    reg8[0x6] = &ram.memory[hl.full]; //this doesnt work since it doesnt get updated.
+    reg8[0x6] = &ram.memory[hl.full]; //this doesnt work since it doesnt get updated when HL changes...
     reg8[0x7] = &af.high;
         
 
@@ -75,6 +75,20 @@ int Cpu::shift_sb()
     ram->memory[ram->SB] = ram->memory[ram->SB] <<1;
 }
 
+uint8_t& Cpu::get_r8_hl(){
+    //uint16_t address = (hl.high << 7 | hl.low);
+    uint16_t address = hl.full;
+    m_cycle+=2;
+    return ram->memory[address];
+}
+
+//UNUSED, DEPRECIATED
+void Cpu::set_r8_hl(uint8_t val){
+    uint16_t address = (hl.high << 7 | hl.low);
+    ram->memory[address] = val;
+}
+
+
 int Cpu::read_rom(const char path[]){
     std::ifstream reader;
     reader.open(path, std::ios::binary);
@@ -103,8 +117,6 @@ int Cpu::read_rom(const char path[]){
         
     }
     //where to start, where to end?
-
-
     return 1;
 }
 
@@ -164,7 +176,6 @@ int Cpu::handle_input(SDL_Event event){
             
             
         }
-
     }
 
 }
@@ -255,7 +266,7 @@ void Cpu::set_half_if_borrow(uint8_t minuend, uint8_t subtrahend, uint8_t carry)
     set_h(borrow ? 1 : 0);
 } 
 void Cpu::set_carry_if_borrow(uint8_t minuend, uint8_t subtrahend, uint8_t carry){
-    ((subtrahend + carry)> minuend) ? set_c(1) : set_c(0);
+    ((subtrahend+carry )> minuend) ? set_c(1) : set_c(0);
 }
 
 //return 8bit instruction
@@ -406,6 +417,48 @@ void Cpu::decode_block0(uint8_t instruction){
                 jr_cc_n8(condition);
             }
             break;
+
+        case 1:
+        {
+            uint8_t bit = instruction >> 3 & 0x1;
+            if (bit==0){
+                ld_r16(((instruction >> 4) & 0x3));
+                break;
+            }
+            else if (bit==1){
+                uint8_t operand = instruction >> 4 & 0x3;
+                add_hl_from_r16(operand);
+                break;
+            }
+
+        }
+        case 2:{
+            uint8_t bit = instruction >> 3 & 0x1;
+            if (bit==1){
+                ld_a_from_r16mem(af.high, instruction >> 4 & 0x3);
+                break; 
+            }
+            else{
+                ld_to_r16mem((instruction >> 4) & 0x3, af.high);
+                break;
+            }
+            
+            
+        }
+        case 3:{
+            uint8_t bit = instruction >>3 & 0x1;
+            if (bit==1){
+                uint8_t operand = instruction >> 4 & 0x3;
+                dec_r16(operand);
+                break;
+            }
+            else{
+                uint8_t operand = instruction >> 4 & 0x3;
+                inc_r16(operand);
+                break;
+            }
+
+        }
         case 4:{
             uint8_t operand = instruction >> 3 & 0x7; //3 bits
             inc_r8(operand);
@@ -421,32 +474,6 @@ void Cpu::decode_block0(uint8_t instruction){
             ld_r8_n8(operand);
             break; 
         }
-    }
-    switch (opcode){
-        case 1:
-            ld_r16(((instruction >> 4) & 0x3));
-            break;
-        case 2:
-            ld_to_r16mem((instruction >> 4) & 0x3, af.high);
-            break;
-        case 10:
-            ld_a_from_r16mem(af.high, instruction >> 4 & 0x3);
-            break; 
-        case 3:{
-            uint8_t operand = instruction >> 4 & 0x3;
-            inc_r16(operand);
-            break;
-        }
-        case 11:{
-            uint8_t operand = instruction >> 4 & 0x3;
-            dec_r16(operand);
-            break;
-        }
-        case 9:{
-            uint8_t operand = instruction >> 4 & 0x3;
-            add_hl_from_r16(operand);
-            break;
-        }
         case 7:{
             uint8_t mid = (instruction >>3) & 0x7;
             switch (mid){
@@ -459,7 +486,7 @@ void Cpu::decode_block0(uint8_t instruction){
                     //TODO: DAA WTF
                     break;
                 }  
-                case 5: cpl(); break;
+                case 5: std::cout << "hello"; cpl(); break;
                 case 6:scf(); break;
                 case 7:ccf(); break;
             }
@@ -601,8 +628,8 @@ void Cpu::decode_block3(uint8_t instruction){
                     ld_hl_sp_and_n8();
                     break;
                 default:
-                    //std::cout << "RET COND" << std::endl;
-                    uint8_t condition = instruction >> 3 & 0x3;
+                    
+                    uint8_t condition = ((instruction >> 3) & 0x3);
                     ret_cond(condition);
                     break;    
             }
@@ -625,7 +652,7 @@ void Cpu::decode_block3(uint8_t instruction){
                     jp_hl();
                     break;
 
-                case 0xFA:
+                case 0xF9:
                     //std::cout << "ld sp, hl" << std::endl;
                     ld_sp_from_hl();
                     break;
@@ -685,7 +712,7 @@ void Cpu::decode_block3(uint8_t instruction){
             }
             break;
         case 4:{
-            std::cout << "call cond, imm16" << std::endl;
+            //std::cout << "call cond, imm16" << std::endl;
             uint8_t condition = instruction >> 3 & 0x3;
             call_cond(condition);
             break;
@@ -718,7 +745,7 @@ void Cpu::cb(){
 
     uint8_t bits_7_6 = (instruction >> 6) & 0x3;
     uint8_t opcode = (instruction >> 3) &0x1F;
-    uint8_t key = (instruction & 0x3);
+    uint8_t key = (instruction & 0x7);
     uint8_t bit_index = (instruction >> 3) & 0x7;
     switch (bits_7_6){
         case 0:{

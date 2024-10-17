@@ -148,7 +148,7 @@ class Cpu{
 
         //block 1
 
-        void ld_r8_r8(uint8_t dest, uint8_t src);
+        void ld_r8_r8(uint8_t dest, uint8_t src); //
         void halt();
 
         //block 2
