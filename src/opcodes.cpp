@@ -155,7 +155,46 @@ void Cpu::rra(){
                     set_c(new_carry);
 }
 void Cpu::daa(){
+    //get a, get two nibbles.
+    //save a as value : 0d25;
+    //nibble1 = a
+    uint8_t nibble_lo = af.high & 0xF;
+
+    uint8_t nibble_hi = (af.high >> 4) & 0xF;
     
+    std::cout << "0x" << std::hex <<(signed)nibble_lo << std::endl;
+    std::cout << (nibble_lo > 0x9) << std::endl;
+
+    if ((af.low & 0x40)>0){ //if n=1
+         if ((af.low & 0x10)>0){
+            af.high -= 0x60;
+         }
+         if ((af.low & 0x20) > 0){
+            af.high -= 6;
+         }
+
+    }
+    else{ //n=0
+        if (((af.low & 0x20)>0)||((af.high & 0xF) > 0x9)){
+
+            af.high = af.high + 6;
+        //std::cout << signed(af.full) << std::endl;
+        }
+        if (((af.high & 0xF0) >> 4) > 9 || (af.low & 0x10)>0)
+        {
+            af.high = af.high+=0x60;
+            set_c(1);
+        //af.full +=0x60;
+        }
+         
+    }
+    
+    //set_carry_if_overflow_8(af.high, 0x60);
+
+    set_z((af.high==0) ? 1 : 0);
+    set_h(0);
+
+
 } //todo
 
 void Cpu::cpl(){

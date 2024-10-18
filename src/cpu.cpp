@@ -482,7 +482,9 @@ void Cpu::decode_block0(uint8_t instruction){
                 case 2: rla(); break;
                 case 3: rra(); break;  
                 case 4:{
-                    //std::cout << "daa" << std::endl;
+                    std::cout << "daa" << std::endl;
+                    daa();
+                    
                     //TODO: DAA WTF
                     break;
                 }  
