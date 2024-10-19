@@ -55,6 +55,7 @@ class Cpu{
 
         int test();
         uint8_t& get_r8_hl();
+        uint8_t& get_r16_hl();
         void set_r8_hl(uint8_t);
 
         //uint8_t a, f; //af = a + flag

@@ -7,10 +7,10 @@ int main(){
     Happy gb;
     
     //gb.load_rom("roms/tetris.gb");
-    // gb.load_rom("roms/doctor.gb");
+    //gb.load_rom("roms/doctor.gb");
     gb.load_rom("test_roms/cpu_instrs.gb");
-    //gb.run_program();
-    gb.run_tests();
+    gb.run_program();
+    //gb.run_tests();
 
 
    //while (true){

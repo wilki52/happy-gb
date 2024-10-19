@@ -75,6 +75,7 @@ int Cpu::shift_sb()
     ram->memory[ram->SB] = ram->memory[ram->SB] <<1;
 }
 
+
 uint8_t& Cpu::get_r8_hl(){
     //uint16_t address = (hl.high << 7 | hl.low);
     uint16_t address = hl.full;
@@ -240,8 +241,8 @@ void Cpu::set_c(uint8_t c){
 
 //3 bit overflow
 void Cpu::set_half_if_overflow_8(uint8_t op1, uint8_t op2, uint8_t carry){
-    uint8_t overflow_bit = (((op1 & 0xF)+(op2 & 0xF)+(carry&0xF)) & 0x10);
-    set_h((overflow_bit == 0x10) ? 1 : 0);
+    bool overflow_bit = (((op1 & 0xF)+(op2 & 0xF)+(carry&0xF)) > 0x0F);
+    set_h((overflow_bit) ? 1 : 0);
 } 
 //check overflow bit7
 void Cpu::set_carry_if_overflow_8(uint8_t op1, uint8_t op2, uint8_t carry){
@@ -251,12 +252,14 @@ void Cpu::set_carry_if_overflow_8(uint8_t op1, uint8_t op2, uint8_t carry){
 
  //11 bit overflow
 void Cpu::set_half_if_overflow_16(uint16_t op1, uint16_t op2, uint8_t carry){
-    uint16_t overflow_bit = (((op1 & 0xFFF)+(op2 & 0xFFF)+ (carry & 0xFFF)) & 0x1FFF);
-    set_h((overflow_bit== 0x1FFF) ? 1 : 0);
+    bool overflow_bit = (((op1 & 0xFFF)+(op2 & 0xFFF)+ (carry & 0xFFF)) > 0x0FFF);
+    set_h((overflow_bit) ? 1 : 0);
 } 
 //check overflow bit15
 void Cpu::set_carry_if_overflow_16(uint16_t op1, uint16_t op2, uint8_t carry){
-    bool overflow = ((op1+op2+carry)>65535) ;
+    bool overflow = ((op1+op2+(carry))>65535) ;
+    std::cout << (signed)op1 << "+" << (signed)op2 << "+" << (signed)carry << "=" << (signed)(op1+op2+carry) << std::endl;
+    std::cout << "overflow?: " <<(signed)overflow << std::endl;
     set_c(overflow ? 1 : 0);
 } 
 
@@ -272,7 +275,7 @@ void Cpu::set_carry_if_borrow(uint8_t minuend, uint8_t subtrahend, uint8_t carry
 //return 8bit instruction
 uint8_t Cpu::fetch(){
     uint8_t instruction = ram->memory[pc];
-    std::cout << "address: 0d" << std::dec << pc << "  instruction: 0x"  << std::hex << signed(instruction) << std::endl;
+    //std::cout << "address: 0d" << std::dec << pc << "  instruction: 0x"  << std::hex << signed(instruction) << std::endl;
     //std::cout<< std::endl;
     pc= pc+1;
     m_cycle+=1; //FETCH IS +1 m_cycle
@@ -439,6 +442,7 @@ void Cpu::decode_block0(uint8_t instruction){
                 break; 
             }
             else{
+                //std::cout << "LD R      16" << std::endl;
                 ld_to_r16mem((instruction >> 4) & 0x3, af.high);
                 break;
             }
@@ -482,7 +486,7 @@ void Cpu::decode_block0(uint8_t instruction){
                 case 2: rla(); break;
                 case 3: rra(); break;  
                 case 4:{
-                    std::cout << "daa" << std::endl;
+                    //std::cout << "daa" << std::endl;
                     daa();
                     
                     //TODO: DAA WTF
