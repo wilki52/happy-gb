@@ -1,7 +1,9 @@
 #include "cpu.h"
 
 #include <iostream>
-void nop();
+void nop(){
+    //nothing happens here lil bro
+}
 
 void Cpu::ld_r16(uint8_t dest){
     //std::cout << "LD r16, imm16" << std::endl;
@@ -198,9 +200,7 @@ void Cpu::daa(){
     }
     set_z((af.high==0) ? 1 : 0);
     set_h(0);
-
-
-} //todo
+} 
 
 void Cpu::cpl(){
     //std::cout << "cpl" << std::endl;
@@ -226,7 +226,6 @@ void Cpu::ccf(){
 }
 
 void Cpu::jr_n8(){
-    //TODO: signed? fix this.
     int8_t offset = read();
     pc+=offset;
 
@@ -286,8 +285,10 @@ void Cpu::jr_cc_n8(uint8_t condition){
                 }
 }
 
+//todo
+void stop(){
 
-        void stop();
+}
 
 //block 1
 
@@ -325,7 +326,6 @@ void Cpu::adc(uint8_t &destination, uint8_t &operand){
     uint8_t old = destination;
     uint8_t old_op = r8;
     destination = destination + r8 + ((af.low & 0x10)>>4); //+ carry flag
-    //TODO: if 0, 0, if overflow from bit3, if overflow from bit7;
     //std::cout << "new a: 0d" << std::dec << (signed)destination << std::endl;
     set_half_if_overflow_8(old, old_op,  (af.low & 0x10)>>4); //include carry bit
     set_carry_if_overflow_8(old, old_op, (af.low &0x10)>>4);
@@ -384,7 +384,7 @@ void Cpu::opcode_xor(uint8_t &destination, uint8_t &operand){
     uint8_t& r8 = ((operand==0x6) ? get_r8_hl() : *reg8[operand]);
 
     destination = destination ^ r8;
-    //TODO: set flag 0 if zero, 0, 0, 0;
+    
     set_z((destination==0)? 1: 0);
     set_n(0);
     set_h(0);
@@ -394,7 +394,7 @@ void Cpu::opcode_or(uint8_t &destination, uint8_t &operand){
     uint8_t& r8 = ((operand==0x6) ? get_r8_hl() : *reg8[operand]);
     
     destination = destination | r8;
-    //TODO: set flag Z IF 0, 0 0 0
+    
     set_z((destination==0)? 1: 0);
     set_n(0);
     set_h(0);
@@ -432,7 +432,6 @@ void Cpu::adc(uint8_t &destination){
     uint8_t imm8 = read();
     uint8_t old = destination;
     destination = destination+ imm8 + ((f & 0x10)>>4); //+ carry flag
-    //TODO: if 0, 0, if overflow from bit3, if overflow from bit7;
     set_half_if_overflow_8(old, imm8,  (f & 0x10)>>4); //include carry bit
     set_carry_if_overflow_8(old, imm8, (f&0x10)>>4);
 
@@ -518,7 +517,7 @@ void Cpu::ret_cond(uint8_t condition){
             break;
         case 1:
             //if z==1
-            std::cout << "case 1" << std::endl;
+            
             if (((f& 0x80)>> 7)==1){
                 //jump
                 pc = (ram->memory[sp.full+1]<<8) | ram->memory[sp.full]; //hi+lo
@@ -528,18 +527,18 @@ void Cpu::ret_cond(uint8_t condition){
             break;
         case 2:
             //if c==0
-            std::cout << "case 2" << std::endl;
+            
             if (((f >> 4 )& 0x1)==0){
                 //jump
                 pc = (ram->memory[sp.full+1]<<8) | ram->memory[sp.full]; //hi+lo
                 sp.full+=2; //pop up
                 m_cycle+=4; //2 bytes + internal set pc
-                std::cout << "pc: 0d" << std::dec << pc << std::endl;
+                
 
             }
             break;
         case 3:
-            std::cout << "case 3: " << std::hex << (signed)f << std::endl;
+            
             
             if (((f>> 4)& 0x1)==1){
                 //jump
@@ -547,11 +546,11 @@ void Cpu::ret_cond(uint8_t condition){
                 pc = ((ram->memory[sp.full+1]<<8) | ram->memory[sp.full]); //hi+lo
                 sp.full+=2; //pop up
                 m_cycle+=4; //2 bytes + internal set pc
-                std::cout << "pc: 0d" << std::dec << pc << std::endl;
+                
             }
             break;
         default:
-            std::cout << "bro" << std::endl;
+            
             m_cycle+=1; //internal branch decision
             break;
     }
@@ -663,7 +662,6 @@ void Cpu::call_cond(uint8_t cond){
                 pc+=2;
             }
     }
-//todo
 }
 
 void Cpu::call(uint16_t address){
@@ -743,24 +741,22 @@ void Cpu::push(uint8_t &key){
     write(sp.full, reg16[key]->low);
     m_cycle+=1;
 }
-        void prefix(){}
+
 
 void Cpu::ldh_to_c(uint8_t &a){
     write(0xFF00+bc.low, a);
-
-} //from a
+}
 
 void Cpu::ldh_to_n8(uint8_t &a){ //e0
     uint8_t imm8 = read(); //unsigned
-    write((0xFF00 | imm8), a);
-    
-} //from a
+    write((0xFF00 | imm8), a);  
+} 
+
 void Cpu::ld_to_n16(uint8_t &a){
     uint8_t imm_low = read();
     uint8_t imm_hi = read();
     write((imm_hi<<8)+imm_low, a);
-
-} //from a
+}
 
 void Cpu::ldh_from_c(uint8_t &a){
     a = read(0xFF00 + bc.low);
@@ -809,6 +805,7 @@ void Cpu::ld_sp_from_hl(){
 
 void Cpu::di(){
     ime = 0;
+    ime_hold = 0;
 }
 
 void Cpu::ei(){
@@ -921,7 +918,6 @@ void Cpu::swap(uint8_t &key){
     set_h(0);
     set_c(0);
     m_cycle+=1;
-
 }
 
 void Cpu::srl(uint8_t &key){
@@ -935,7 +931,6 @@ void Cpu::srl(uint8_t &key){
     set_h(0);
     set_c(carry);
     m_cycle+=1;
-
 }
 
 void Cpu::bit(uint8_t &bit_index, uint8_t &op_key){
@@ -946,8 +941,6 @@ void Cpu::bit(uint8_t &bit_index, uint8_t &op_key){
     set_n(0);
     set_h(1);
     m_cycle+=1;
-
-
 }
 
 void Cpu::res(uint8_t &bit_index, uint8_t &op_key){

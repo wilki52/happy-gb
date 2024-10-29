@@ -88,7 +88,7 @@ void Happy::cycle(){
 
     cpu.handle_interrupt();
 
-    SDL_Delay(100);
+    //SDL_Delay(100);
 
     //if LCDC.7: PPU render
     if (ram.memory[(ram.LCDC >> 7)&0x1]==1){

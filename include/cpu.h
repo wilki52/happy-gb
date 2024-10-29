@@ -43,6 +43,13 @@ class Cpu{
         std::map<uint8_t, Register*> reg16;
         std::map<uint8_t, uint8_t> vec; //rst vectors
 
+        void set_vblank_interrupt();
+        void set_stat_interrupt();
+        void set_timer_interrupt();
+        void set_serial_interrupt();
+        void set_joy_interrupt();
+
+
     private:
         uint8_t input[8] = {1,1,1,1,1,1,1,1}; //high= buttons, //low = dpad
 

@@ -205,16 +205,16 @@ void Cpu::handle_interrupt(){
         }
         else if (((IF >>2)& 0x1)==0x1){
             uint8_t bit = 2;
-            address= 0x0050;
+            address= 0x50;
         }
         else if (((IF >>3) & 0x1)==0x1){
             uint8_t bit = 3;
-            address= 0x0058;
+            address= 0x58;
         }
         else if (((IF >>4)& 0x1)==0x1){ //joyp
             //bit 0
             uint8_t bit = 4;
-            address= 0x0060;
+            address= 0x60;
         }
 
         if (ime==1 && ((handler>>bit) & 0x1) ==1){
@@ -309,6 +309,8 @@ void Cpu::write(uint16_t address, uint8_t data){
     if (address==0xFF01)
     {
         //std::cout << "PANIC!!!!" << std::endl;
+        std::cout << (signed)ram->memory[address];
+        //abort();
         //std::cout << "PANIC!!!!" << std::endl;
         //std::cout << "PANIC!!!!" << std::endl;
         //std::cout << "PANIC!!!!" << std::endl;
@@ -396,7 +398,7 @@ void Cpu::decode_block0(uint8_t instruction){
             switch (instruction){
                 case 0x0:
                     //nop
-                    //std::cout << "NOP (iterate pc)" << std::endl;
+                    nop();
                     break;
                 case 0b00001000:
                     //ld imm16, sp
@@ -409,6 +411,7 @@ void Cpu::decode_block0(uint8_t instruction){
                     break;
                 case 0b00010000:
                     //stop
+                    stop();
                     //std::cout << "stop" << std::endl;
                     //TODO: enter low power mode. use to swtich between double/normal speed CPU in gbc.
                     break;
@@ -701,11 +704,8 @@ void Cpu::decode_block3(uint8_t instruction){
                     //std::cout << "jp imm16" << std::endl;
                     jp();
                     break;
-                case 0xCB: //prefix
-                    //std::cout << "PREFIX" << std::endl;
-                    cb();
-
-                    //TODO
+                case 0xCB: 
+                    cb(); //PREFIX THING
                     break;
                 case 0xF3:
                     //std::cout << "di" << std::endl;
