@@ -1,8 +1,9 @@
 #include "cpu.h"
 
 #include <iostream>
-void nop(){
+void Cpu::nop(){
     //nothing happens here lil bro
+
 }
 
 void Cpu::ld_r16(uint8_t dest){
@@ -79,12 +80,12 @@ void Cpu::inc_r16(uint8_t r_key){
     // }
 
     reg16[r_key]->full = reg16[r_key]->full+1;
-    m_cycle+=1;
+    tick();;
 }
 void Cpu::dec_r16(uint8_t r_key){
     //std::cout << "dec r16" << std::endl;
     reg16[r_key]->full = reg16[r_key]->full-1;
-    m_cycle+=1;
+    tick();;
 }
 void Cpu::add_hl_from_r16(uint8_t operand){
     //std::cout << "add hl, r16" << std::endl;
@@ -96,7 +97,7 @@ void Cpu::add_hl_from_r16(uint8_t operand){
     
     set_n(0);
 
-    m_cycle+=1;
+    tick();;
 
 }
 
@@ -229,7 +230,7 @@ void Cpu::jr_n8(){
     int8_t offset = read();
     pc+=offset;
 
-    m_cycle+=1;
+    tick();;
 }
 
 void Cpu::jr_cc_n8(uint8_t condition){
@@ -244,7 +245,7 @@ void Cpu::jr_cc_n8(uint8_t condition){
                         //if z==0
                         if ((af.low& 0x80)==0){
                             pc+=imm8;
-                            m_cycle+=1;
+                            tick();;
                         }
                         break;
                     }
@@ -252,7 +253,7 @@ void Cpu::jr_cc_n8(uint8_t condition){
                         //if z==1
                         if ((af.low& 0x80) > 0){
                             pc+=(signed)imm8;
-                            m_cycle+=1;
+                            tick();;
                             //std::cout << "yes in"<<std::endl;
                             //std::cout << "pc: 0d" << std::dec << (signed)pc << std::endl;
                             //abort();
@@ -267,7 +268,7 @@ void Cpu::jr_cc_n8(uint8_t condition){
                         if ((af.low& 0x10)==0){
                             //jump
                             pc+=imm8;
-                            m_cycle+=1;
+                            tick();;
 
                         }
                         break;
@@ -277,7 +278,7 @@ void Cpu::jr_cc_n8(uint8_t condition){
                         if ((af.low& 0x10)>0){
                             //jump
                             pc+=imm8;
-                            m_cycle+=1;
+                            tick();;
                         }
                         break;
                     }
@@ -286,7 +287,7 @@ void Cpu::jr_cc_n8(uint8_t condition){
 }
 
 //todo
-void stop(){
+void Cpu::stop(){
 
 }
 
@@ -300,7 +301,9 @@ void Cpu::ld_r8_r8(uint8_t dest, uint8_t src){
     r8_dest = r8_src;
     //*reg8[dest] = *reg8[src];
 }
-        void Cpu::halt(){}
+
+//TODO
+void Cpu::halt(){}
 
 //block 2
 
@@ -512,7 +515,11 @@ void Cpu::ret_cond(uint8_t condition){
                 //jump
                 pc = (ram->memory[sp.full+1]<<8) | ram->memory[sp.full]; //hi+lo
                 sp.full+=2; //pop up
-                m_cycle+=4; //2 bytes + internal set pc
+                 //2 bytes + internal set pc
+                tick();
+                tick();
+                tick();
+                tick();
             }
             break;
         case 1:
@@ -522,7 +529,11 @@ void Cpu::ret_cond(uint8_t condition){
                 //jump
                 pc = (ram->memory[sp.full+1]<<8) | ram->memory[sp.full]; //hi+lo
                 sp.full+=2; //pop up
-                m_cycle+=4; //2 bytes + internal set pc
+                
+                tick();
+                tick();
+                tick();
+                tick();
             }
             break;
         case 2:
@@ -532,7 +543,11 @@ void Cpu::ret_cond(uint8_t condition){
                 //jump
                 pc = (ram->memory[sp.full+1]<<8) | ram->memory[sp.full]; //hi+lo
                 sp.full+=2; //pop up
-                m_cycle+=4; //2 bytes + internal set pc
+                
+                tick();
+                tick();
+                tick();
+                tick();
                 
 
             }
@@ -545,13 +560,17 @@ void Cpu::ret_cond(uint8_t condition){
                 
                 pc = ((ram->memory[sp.full+1]<<8) | ram->memory[sp.full]); //hi+lo
                 sp.full+=2; //pop up
-                m_cycle+=4; //2 bytes + internal set pc
+               
+                tick();
+                tick();
+                tick();
+                tick();
                 
             }
             break;
         default:
             
-            m_cycle+=1; //internal branch decision
+            tick();; //internal branch decision
             break;
     }
 }
@@ -560,7 +579,13 @@ void Cpu::ret(){
     pc = (ram->memory[sp.full+1]<<8) | ram->memory[sp.full]; //hi+lo
     
     sp.full+=2; //pop up
-    m_cycle+=3; //2 bytes + internal set pc
+    
+    tick();
+
+    tick();
+
+    tick();
+
 
 }
 
@@ -580,26 +605,26 @@ void Cpu::jp_cond(uint8_t cond){
             //if z==0
             if ((f& 0x80)==0){
                 pc =jump;
-                m_cycle+=1;
+                tick();;
             }
             break;
         case 1:
             //if z==1
             if ((f& 0x80)>0){
                 pc =jump;
-                m_cycle+=1;
+                tick();;
             }
             break;
         case 2: //if c==0
             if ((f& 0x10)==0){
                 pc =jump;
-                m_cycle+=1;
+                tick();;
             }
             break;
         case 3:
             if ((f& 0x10)>0){
                 pc =jump;
-                m_cycle+=1;
+                tick();;
             }
             break;
     }
@@ -610,7 +635,7 @@ void Cpu::jp(){
     uint8_t hi = read();
     uint16_t jump = (hi << 8) | low;
     pc = jump;
-    m_cycle+=1;
+    tick();;
 }
 
 
@@ -628,7 +653,9 @@ void Cpu::call_cond(uint8_t cond){
                 call(); 
             }
             else {
-                m_cycle+=2;
+                tick();
+                tick();
+
                 pc+=2;
             }
                 
@@ -639,7 +666,9 @@ void Cpu::call_cond(uint8_t cond){
                 call();
             }
             else {
-                m_cycle+=2;
+                tick();
+                tick();
+
                 pc+=2;
             }
             break;
@@ -649,7 +678,10 @@ void Cpu::call_cond(uint8_t cond){
                 call();
             }
             else {
-                m_cycle+=2;
+                //todo: what is the order here? should pc+2 be in a function instead?
+                tick();
+                tick();
+
                 pc+=2;
             }
             break;
@@ -658,7 +690,9 @@ void Cpu::call_cond(uint8_t cond){
                 call();
             }
             else {
-                m_cycle+=2;
+                tick();
+                tick();
+
                 pc+=2;
             }
     }
@@ -670,7 +704,7 @@ void Cpu::call(uint16_t address){
     sp.full-=1;
     write(sp.full,(pc & 0xFF));
     pc = address;
-    m_cycle+=1;
+    tick();;
 
 }
 void Cpu::call(){
@@ -685,7 +719,7 @@ void Cpu::call(){
 
     //jump
     pc = (hi <<8)| lo;
-    m_cycle+=1; //16 bits twice. 
+    tick();; //16 bits twice. 
     //std::cout << "sp and pc: " << (signed)sp.full << " " << (signed)pc << std::endl;
  }
 
@@ -699,7 +733,7 @@ void Cpu::rst(uint8_t target){
     write(sp.full,(pc & 0xFF));
 
     pc = vec[target];
-    m_cycle+=1;
+    tick();;
 
 }
 
@@ -723,7 +757,9 @@ void Cpu::pop(uint8_t &key){
         //no flags for some reason
     }
     
-    m_cycle+=2;
+    tick();
+    tick();
+
 
 }
 void Cpu::push(uint8_t &key){
@@ -732,14 +768,14 @@ void Cpu::push(uint8_t &key){
         write(sp.full, af.high);
         sp.full-=1;
         write(sp.full, af.low);
-        m_cycle+=1;
+        tick();;
         return;
     }
     sp.full-=1;
     write(sp.full, reg16[key]->high); 
     sp.full-=1;
     write(sp.full, reg16[key]->low);
-    m_cycle+=1;
+    tick();;
 }
 
 
@@ -783,7 +819,8 @@ void Cpu::add_sp_from_n8(){
     set_z(0);
     set_n(0);
 
-    m_cycle+=2; //4th cycle. its because sp is 2 bytes. 
+    tick();
+    tick(); //4th cycle. its because sp is 2 bytes. 
 }
 void Cpu::ld_hl_sp_and_n8(){
     int8_t imm8 = read();
@@ -795,12 +832,12 @@ void Cpu::ld_hl_sp_and_n8(){
 
     hl.full = sp.full + imm8;
 
-    m_cycle+=1;
+    tick();;
 
 }
 void Cpu::ld_sp_from_hl(){
     sp.full = hl.full;
-    m_cycle+=1;
+    tick();;
 }
 
 void Cpu::di(){
@@ -831,7 +868,7 @@ void Cpu::rlc(uint8_t &key){
     set_h(0);
     set_c(msb);
 
-    m_cycle+=1;
+    tick();;
 
 }
 
@@ -848,7 +885,7 @@ void Cpu::rrc(uint8_t &key){
     set_n(0);
     set_h(0);
     set_c(lsb);
-    m_cycle+=1;
+    tick();;
 
 }
 
@@ -864,7 +901,7 @@ void Cpu::rl(uint8_t &key){
     set_n(0);
     set_h(0);
     set_c(carry);
-    m_cycle+=1;
+    tick();;
 }
 
 void Cpu::rr(uint8_t &key){
@@ -877,7 +914,7 @@ void Cpu::rr(uint8_t &key){
     set_n(0);
     set_h(0);
     set_c(carry);
-    m_cycle+=1;
+    tick();;
 
 }
 
@@ -891,7 +928,7 @@ void Cpu::sla(uint8_t &key){
     set_n(0);
     set_h(0);
     set_c(carry);
-    m_cycle+=1;
+    tick();;
 
 }
 void Cpu::sra(uint8_t &key){
@@ -905,7 +942,7 @@ void Cpu::sra(uint8_t &key){
     set_n(0);
     set_h(0);
     set_c(carry);
-    m_cycle+=1;
+    tick();;
 }
 
 void Cpu::swap(uint8_t &key){
@@ -917,7 +954,7 @@ void Cpu::swap(uint8_t &key){
     set_n(0);
     set_h(0);
     set_c(0);
-    m_cycle+=1;
+    tick();;
 }
 
 void Cpu::srl(uint8_t &key){
@@ -930,7 +967,7 @@ void Cpu::srl(uint8_t &key){
     set_n(0);
     set_h(0);
     set_c(carry);
-    m_cycle+=1;
+    tick();;
 }
 
 void Cpu::bit(uint8_t &bit_index, uint8_t &op_key){
@@ -940,18 +977,18 @@ void Cpu::bit(uint8_t &bit_index, uint8_t &op_key){
     set_z((bit==0) ? 1 : 0);
     set_n(0);
     set_h(1);
-    m_cycle+=1;
+    tick();;
 }
 
 void Cpu::res(uint8_t &bit_index, uint8_t &op_key){
     uint8_t& r8 = ((op_key==0x6) ? get_r8_hl() : *reg8[op_key]);
     r8 = (r8) & ~(0x1 << bit_index); 
-    m_cycle+=1;
+    tick();;
 }
         
 void Cpu::set(uint8_t &bit_index, uint8_t &op_key){
     uint8_t& r8 = ((op_key==0x6) ? get_r8_hl() : *reg8[op_key]);
     r8 = (r8) | (0x1 << bit_index);
-    m_cycle+=1;
+    tick();;
 }
 

@@ -1,4 +1,5 @@
 #include "memory.h"
+#include <iostream>
 
 Memory::Memory(){
     cgb_flag = 0x0143;
@@ -6,7 +7,6 @@ Memory::Memory(){
     JOYP = 0xFF00;
 
     //serial transfer
-   
     SB = 0xFF01;
     SC = 0xFF02;
 
@@ -27,6 +27,5 @@ Memory::Memory(){
     STAT = 0xFF41;
     BGP = 0xFF47;
 
-    
 
 }

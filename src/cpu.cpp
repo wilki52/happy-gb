@@ -5,6 +5,8 @@
 Cpu::Cpu(){
     
 }
+
+
 Cpu::Cpu(Memory& ram): ram(&ram){
     //init sp
     //sp = {0};
@@ -45,10 +47,43 @@ Cpu::Cpu(Memory& ram): ram(&ram){
     vec[0x6] = 0x30; //11 11 0 111 /F7
     vec[0x7] = 0x38; //11 11 1 111 //FF
 
+    clock_selector[0x00] = 256;
+    clock_selector[0x01] = 4;
+    clock_selector[0x02] = 16;
+    clock_selector[0x03] = 64;
+
     //test();
 
     
 
+}
+
+void Cpu::tick(){
+    m_cycle+=1;
+
+    //timer
+    if (m_cycle % 64 == 0){
+        ram->memory[ram->DIV]++;
+    }
+    
+
+    uint8_t clock_select = ram->memory[ram->TAC] & 0x3;
+    uint8_t clock_enable = (ram->memory[ram->TAC] >> 2) & 0x1;
+    if ((clock_enable >0) && (m_cycle % clock_selector[clock_select])== 0){
+        bool overflow = ((ram->memory[ram->TIMA] + 1) > 0xFF); 
+        ram->memory[ram->TIMA]++;
+
+       
+        if (overflow){
+            //send interrupt
+            request_timer_interrupt();
+            ram->memory[ram->TIMA] = ram->memory[ram->TMA];
+            
+        }
+    }
+
+
+    //check interrupts here?
 }
 
 //to lazy to set up tests, so im just having these. maybe make unit tests for later.
@@ -79,7 +114,9 @@ int Cpu::shift_sb()
 uint8_t& Cpu::get_r8_hl(){
     //uint16_t address = (hl.high << 7 | hl.low);
     uint16_t address = hl.full;
-    m_cycle+=2;
+
+    tick();
+    tick();
     return ram->memory[address];
 }
 
@@ -181,9 +218,27 @@ int Cpu::handle_input(SDL_Event event){
 
 }
 
-void check_TIMA_overflow(){
-    //checks if 
+
+void Cpu::request_vblank_interrupt(){
+    ram->memory[ram->IF] = ram->memory[ram->IF] | 0x01;
 }
+
+void Cpu::request_stat_interrupt(){
+    ram->memory[ram->IF] = ram->memory[ram->IF] | 0x02;
+}
+
+void Cpu::request_timer_interrupt(){
+    ram->memory[ram->IF] = ram->memory[ram->IF] | 0x04;
+}
+
+void Cpu::request_serial_interrupt(){
+    ram->memory[ram->IF] = ram->memory[ram->IF] | 0x08;
+}
+
+void Cpu::request_joypad_interrupt(){
+    ram->memory[ram->IF] = ram->memory[ram->IF] | 0x10;
+}
+
 
 //formerly check_if
 void Cpu::handle_interrupt(){
@@ -278,23 +333,23 @@ uint8_t Cpu::fetch(){
     //std::cout << "address: 0d" << std::dec << pc << "  instruction: 0x"  << std::hex << signed(instruction) << std::endl;
     //std::cout<< std::endl;
     pc= pc+1;
-    m_cycle+=1; //FETCH IS +1 m_cycle
+    tick();
 
     
     return instruction;
 }
 
-//read from memory, M_CYCLE+=1
+//read from memory
 uint8_t Cpu::read(){
     uint8_t int_8 = ram->memory[pc];
     pc= pc+1;
-    m_cycle+=1; //FETCH IS +1 m_cycle
+    tick();
     return int_8;
 }
 
 uint8_t Cpu::read(uint16_t address){
     uint8_t val = ram->memory[address]; //uses bus...should i store this? so it checks cycle each time.
-    m_cycle+=1; //FETCH IS +1 m_cycle
+    tick();
     return val;
 }
 
@@ -354,7 +409,7 @@ void Cpu::write(uint16_t address, uint8_t data){
     ram->memory[address] = data;
 
     //pc= pc+1;
-    m_cycle+=1; //writing IS +1 m_cycle
+    tick();
 }
 
 

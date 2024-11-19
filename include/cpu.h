@@ -19,8 +19,12 @@ typedef union {
 
 class Cpu{
     public:
+
         Cpu();
         Cpu(Memory& ram);
+
+        void tick();
+
         uint8_t fetch();
         void decode(uint8_t instruction);
         //uint8_t load_rom(Memory ram);
@@ -43,6 +47,7 @@ class Cpu{
         std::map<uint8_t, Register*> reg16;
         std::map<uint8_t, uint8_t> vec; //rst vectors
 
+        std::map<uint8_t, uint8_t> clock_selector;
         void set_vblank_interrupt();
         void set_stat_interrupt();
         void set_timer_interrupt();
@@ -87,6 +92,11 @@ class Cpu{
         int m_cycle;
         int t_state; 
 
+        void request_vblank_interrupt();
+        void request_stat_interrupt();
+        void request_timer_interrupt();
+        void request_serial_interrupt();
+        void request_joypad_interrupt();
         
 
         
