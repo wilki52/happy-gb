@@ -120,7 +120,9 @@ void Cpu::dec_r8(uint8_t key){
 
     //set_half_if_overflow_8(*reg8[key], 0x1);
     set_half_if_borrow(r8, 1, 0);
+    
     r8 = r8-1;
+    std::cout << "new reg: " << std::dec << unsigned(r8) << std::endl;
     set_z( (r8==0)? 1:0);
     set_n(1);
 }

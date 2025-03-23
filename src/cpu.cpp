@@ -280,6 +280,7 @@ void Cpu::handle_interrupt(){
 void Cpu::set_z(uint8_t z){
     uint8_t &f = af.low;
     (z==1) ? (f= f| 0x80) : (f = f & 0x7F);
+    std::cout << "new z: " << std::dec << (f>>7);
 }
 void Cpu::set_n(uint8_t n){
      uint8_t &f = af.low;
@@ -321,6 +322,8 @@ void Cpu::set_carry_if_overflow_16(uint16_t op1, uint16_t op2, uint8_t carry){
 void Cpu::set_half_if_borrow(uint8_t minuend, uint8_t subtrahend, uint8_t carry){
     //((subtrahend & 0xF) > (minuend & 0xF)) ? set_h(1) : set_h(0);
     bool borrow = (((subtrahend & 0xF)+(carry&0xF)) > ((minuend & 0xF)));
+
+    std::cout << "borrow?  : " << borrow << std::endl;
     set_h(borrow ? 1 : 0);
 } 
 void Cpu::set_carry_if_borrow(uint8_t minuend, uint8_t subtrahend, uint8_t carry){
@@ -330,8 +333,8 @@ void Cpu::set_carry_if_borrow(uint8_t minuend, uint8_t subtrahend, uint8_t carry
 //return 8bit instruction
 uint8_t Cpu::fetch(){
     uint8_t instruction = ram->memory[pc];
-    //std::cout << "address: 0d" << std::dec << pc << "  instruction: 0x"  << std::hex << signed(instruction) << std::endl;
-    //std::cout<< std::endl;
+    std::cout << "address: 0x" << std::hex << pc << "  instruction: 0x"  << std::hex << signed(instruction) << std::endl;
+    std::cout<< std::endl;
     pc= pc+1;
     tick();
 

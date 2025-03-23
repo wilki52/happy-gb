@@ -29,6 +29,8 @@ class Happy{
         void run_program();
 
         void run_tests();
+
+        void skip_bootrom();
 };
 
 

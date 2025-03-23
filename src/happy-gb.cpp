@@ -14,6 +14,11 @@ void Happy::run_tests(){
     //tester.read_json("tests/cpu/v2/01.json");
 }
 
+void Happy::skip_bootrom(){
+
+    cpu.pc = 0x100;
+}
+
 void Happy::run_program(){
     SDL_Event e;
     std::cout << "run program" << std::endl;
@@ -36,7 +41,7 @@ void Happy::run_program(){
         draw+=1;
         //std::cout << "hello";
         //if sc is 81, shift sb. and output.
-        std::cout << ram.memory[ram.SB];
+        //std::cout << ram.memory[ram.SB];
 
         if ((ram.memory[ram.SC] >> 7) ==0x1 ){
         //if (cpu.sb_count <8){
@@ -66,7 +71,9 @@ void Happy::run_program(){
         
 
     }
-    display.print_vram();
+    //display.print_vram();
+
+
     // for (int i = 0x8000; i<0x8020; i++){
     //     if (true){
     //         std::cout << std::hex << i << ": " << signed(ram.memory[i]) <<  std::endl;
@@ -83,12 +90,15 @@ void Happy::run_program(){
 void Happy::cycle(){
     
     uint8_t instruction = cpu.fetch();
+
     
     cpu.decode(instruction); 
+    
 
     cpu.handle_interrupt();
 
-    //SDL_Delay(100);
+
+    SDL_Delay(100);
 
     //if LCDC.7: PPU render
     if (ram.memory[(ram.LCDC >> 7)&0x1]==1){
