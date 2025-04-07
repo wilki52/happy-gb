@@ -9,7 +9,8 @@ Happy::Happy(): ram(), cpu(ram), display(ram){ //init ram, then init cpu constru
 void Happy::run_tests(){
     JsonTest tester(ram, cpu);
     //tester.run_tests("tests/cpu/v2/01.json");
-    tester.run_all_tests("tests/cpu/v2");
+    std::cout << "init run tests" << std::endl;
+    tester.run_all_tests("../tests/cpu/v2");
     
     //tester.read_json("tests/cpu/v2/01.json");
 }
@@ -24,7 +25,7 @@ void Happy::run_program(){
     std::cout << "run program" << std::endl;
     bool running = true;
 
-    display.view_vram();
+    //display.view_vram();
     uint8_t draw = 0;
     while (running){
         if (SDL_PollEvent(&e)!=0){
@@ -98,7 +99,7 @@ void Happy::cycle(){
     cpu.handle_interrupt();
 
 
-    SDL_Delay(100);
+    //SDL_Delay(100);
 
     //if LCDC.7: PPU render
     if (ram.memory[(ram.LCDC >> 7)&0x1]==1){

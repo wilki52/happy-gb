@@ -333,10 +333,11 @@ void Cpu::set_carry_if_borrow(uint8_t minuend, uint8_t subtrahend, uint8_t carry
 //return 8bit instruction
 uint8_t Cpu::fetch(){
     uint8_t instruction = ram->memory[pc];
-    std::cout << "address: 0x" << std::hex << pc << "  instruction: 0x"  << std::hex << signed(instruction) << std::endl;
-    std::cout<< std::endl;
+    //std::cout << "address: 0x" << std::hex << pc << "  instruction: 0x"  << std::hex << signed(instruction) << std::endl;
+    //std::cout<< std::endl;
     pc= pc+1;
     tick();
+
 
     
     return instruction;
